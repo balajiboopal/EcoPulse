@@ -1,0 +1,1087 @@
+{% extends "base.html" %}
+
+{% block title %}Company Events - EcoPulse{% endblock %}
+
+{% block head %}
+<script src="https://js.stripe.com/v3/"></script>
+{% endblock %}
+
+{% block styles %}
+<style>
+  .event-card {
+    border-radius: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px var(--shadow-color);
+  }
+  
+  .event-header {
+    padding: 20px;
+    background-color: var(--primary);
+    color: white;
+  }
+  
+  .event-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .event-footer {
+    padding: 15px 20px;
+    background-color: var(--light-grey);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .event-status {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  
+  .status-upcoming {
+    background-color: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+  }
+  
+  .status-ongoing {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #27ae60;
+  }
+  
+  .status-completed {
+    background-color: rgba(149, 165, 166, 0.2);
+    color: #7f8c8d;
+  }
+  
+  .status-cancelled {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+  }
+  
+  .event-carbon {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    padding-top: 15px;
+  }
+  
+  .carbon-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background-color: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+  }
+  
+  .carbon-badge.high {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+  }
+  
+  .carbon-badge.medium {
+    background-color: rgba(241, 196, 15, 0.1);
+    color: #f39c12;
+  }
+  
+  .event-details-modal .modal-header {
+    background-color: var(--primary);
+    color: white;
+  }
+  
+  .event-details-modal .close {
+    color: white;
+    opacity: 0.8;
+  }
+  
+  .event-details-modal .close:hover {
+    opacity: 1;
+  }
+  
+  .event-info-row {
+    display: flex;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .event-info-item {
+    flex: 1 0 50%;
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    min-width: 200px;
+  }
+  
+  .event-info-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    color: var(--primary);
+    flex-shrink: 0;
+  }
+  
+  .event-sustainability-rating {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+  }
+  
+  .sustainability-score {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    margin-right: 15px;
+  }
+  
+  .initiatives-list {
+    margin-top: 15px;
+    padding-left: 20px;
+  }
+  
+  .offset-bar {
+    height: 10px;
+    background-color: var(--light-grey);
+    border-radius: 5px;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+  
+  .offset-progress {
+    height: 100%;
+    background-color: #27ae60;
+    border-radius: 5px;
+    width: 0;
+    transition: width 1s ease-out;
+  }
+  
+  .metric-card {
+    padding: 20px;
+    border-radius: 10px;
+    background-color: var(--light-grey);
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .metric-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .metric-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 5px;
+  }
+  
+  .metric-subtitle {
+    font-size: 0.9rem;
+    color: var(--dark-grey);
+  }
+  
+  .chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: 20px;
+  }
+  
+  /* Interactive styles for emission breakdown */
+  .emission-category {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .emission-category:hover {
+    transform: translateY(-3px);
+  }
+  
+  .emission-category.active {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    z-index: 5;
+  }
+  
+  .emission-category.dimmed {
+    opacity: 0.6;
+  }
+  
+  .category-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  .travel-emissions { color: #3498db; }
+  .venue-emissions { color: #e74c3c; }
+  .accommodation-emissions { color: #f39c12; }
+  .catering-emissions { color: #2ecc71; }
+  .materials-emissions { color: #9b59b6; }
+  .digital-emissions { color: #1abc9c; }
+  
+  /* Virtual vs In-person toggle */
+  .event-type-toggle {
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--light-grey);
+    border-radius: 50px;
+    padding: 5px;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .event-type-option {
+    flex: 1;
+    padding: 10px 20px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+    border-radius: 50px;
+  }
+  
+  .event-type-slider {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    bottom: 5px;
+    width: calc(50% - 5px);
+    background-color: white;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 1;
+  }
+  
+  .event-type-toggle.virtual .event-type-slider {
+    left: 5px;
+  }
+  
+  .event-type-toggle.in-person .event-type-slider {
+    left: calc(50% + 0px);
+  }
+  
+  .event-type-toggle.virtual .event-type-option[data-type="virtual"],
+  .event-type-toggle.in-person .event-type-option[data-type="in-person"] {
+    color: var(--primary);
+    font-weight: 500;
+  }
+  
+  /* Event type chips */
+  .event-type {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    background-color: var(--light-grey);
+  }
+  
+  .event-type.conference {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+  }
+  
+  .event-type.workshop {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+  }
+  
+  .event-type.team-building {
+    background-color: rgba(241, 196, 15, 0.1);
+    color: #f39c12;
+  }
+  
+  .event-type.training {
+    background-color: rgba(155, 89, 182, 0.1);
+    color: #9b59b6;
+  }
+  
+  /* Equivalence cards */
+  .equivalence-card {
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    background-color: rgba(46, 204, 113, 0.05);
+    border-left: 4px solid #27ae60;
+  }
+  
+  .equivalence-card:hover {
+    transform: translateX(5px);
+  }
+  
+  .equivalence-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(46, 204, 113, 0.1);
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+  
+  .equivalence-icon i {
+    font-size: 24px;
+    color: #27ae60;
+  }
+  
+  .equivalence-text {
+    flex: 1;
+  }
+  
+  .equivalence-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .equivalence-desc {
+    font-size: 0.9rem;
+    color: var(--dark-grey);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+  <h1>Company Events</h1>
+  <p>Manage and track the carbon footprint of company events and initiatives.</p>
+</div>
+
+<div class="row">
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Overall Metrics</h3>
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline" id="toggleQuarterlyView">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span class="toggle-text">Quarterly View</span>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6 col-md-6 mb-4">
+            <div class="metric-card">
+              <h3>Total Events</h3>
+              <div class="metric-value">{{ metrics.total_events }}</div>
+              <div class="metric-subtitle">Tracked events</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-6 mb-4">
+            <div class="metric-card">
+              <h3>Total Emissions</h3>
+              <div class="metric-value">{{ metrics.total_emissions }}</div>
+              <div class="metric-subtitle">kg CO₂e</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-6 mb-4">
+            <div class="metric-card">
+              <h3>Total Attendees</h3>
+              <div class="metric-value">{{ metrics.total_attendees }}</div>
+              <div class="metric-subtitle">Across all events</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-6 mb-4">
+            <div class="metric-card">
+              <h3>Avg. per Attendee</h3>
+              <div class="metric-value">{{ metrics.avg_emissions_per_attendee }}</div>
+              <div class="metric-subtitle">kg CO₂e per person</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-12 col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Carbon Breakdown</h3>
+      </div>
+      <div class="card-body">
+        <div class="event-type-toggle virtual" id="eventTypeToggle">
+          <div class="event-type-slider"></div>
+          <div class="event-type-option" data-type="virtual">Virtual</div>
+          <div class="event-type-option" data-type="in-person">In-Person</div>
+        </div>
+        
+        <div class="chart-container">
+          <canvas id="emissionsChart"></canvas>
+        </div>
+        
+        <h4 class="mt-4 mb-3">Emissions by Category</h4>
+        <div class="row emissions-breakdown">
+          {% set categories = [
+            {'name': 'Travel', 'icon': 'plane', 'value': metrics.emissions_breakdown.data[0], 'class': 'travel-emissions', 'index': 0},
+            {'name': 'Venue', 'icon': 'building', 'value': metrics.emissions_breakdown.data[1], 'class': 'venue-emissions', 'index': 1},
+            {'name': 'Accommodation', 'icon': 'hotel', 'value': metrics.emissions_breakdown.data[2], 'class': 'accommodation-emissions', 'index': 2},
+            {'name': 'Catering', 'icon': 'utensils', 'value': metrics.emissions_breakdown.data[3], 'class': 'catering-emissions', 'index': 3},
+            {'name': 'Materials', 'icon': 'boxes', 'value': metrics.emissions_breakdown.data[4], 'class': 'materials-emissions', 'index': 4},
+            {'name': 'Digital', 'icon': 'laptop', 'value': metrics.emissions_breakdown.data[5], 'class': 'digital-emissions', 'index': 5}
+          ] %}
+          
+          {% for category in categories %}
+          <div class="col-6 col-md-4 mb-4">
+            <div class="emission-category p-3 text-center bg-white rounded-lg" data-index="{{ category.index }}">
+              <i class="fas fa-{{ category.icon }} category-icon {{ category.class }}"></i>
+              <h4 class="mb-2">{{ category.name }}</h4>
+              <div class="font-weight-bold">{{ category.value }} kg CO₂e</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Upcoming Events</h3>
+      </div>
+      <div class="card-body">
+        {% if upcoming_events %}
+        <div class="row">
+          {% for event in upcoming_events %}
+          <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="event-card bg-white">
+              <div class="event-header">
+                <h4 class="mb-0">{{ event.name }}</h4>
+              </div>
+              <div class="event-body">
+                <p class="mb-3">{{ event.description|truncate(100) }}</p>
+                
+                <div class="d-flex align-items-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar mr-2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>{{ event.start_date.strftime('%b %d, %Y') }}</span>
+                </div>
+                
+                <div class="d-flex align-items-center mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin mr-2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <span>{{ event.location if not event.is_virtual else 'Virtual Event' }}</span>
+                </div>
+                
+                <div class="event-type {{ event.event_type|lower }}">{{ event.event_type }}</div>
+                
+                <div class="event-carbon">
+                  <div class="carbon-badge {% if event.total_emissions > 1000 %}high{% elif event.total_emissions > 500 %}medium{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-cloud mr-1"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
+                    {{ event.total_emissions }} kg CO₂e
+                  </div>
+                </div>
+              </div>
+              <div class="event-footer">
+                <span class="event-status status-{{ event.status|lower }}">{{ event.status.capitalize() }}</span>
+                <button class="btn btn-sm btn-outline" onclick="showEventDetails({{ event.id }})">View Details</button>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar mb-3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          <h4>No upcoming events</h4>
+          <p class="text-muted">There are no upcoming events scheduled at this time.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Past Events</h3>
+        <button class="btn btn-sm btn-outline">View All</button>
+      </div>
+      <div class="card-body">
+        {% if past_events %}
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Event Name</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Attendees</th>
+                <th>Carbon Footprint</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for event in past_events %}
+              <tr>
+                <td>{{ event.name }}</td>
+                <td>{{ event.start_date.strftime('%b %d, %Y') }}</td>
+                <td><span class="event-type {{ event.event_type|lower }}">{{ event.event_type }}</span></td>
+                <td>{{ event.location if not event.is_virtual else 'Virtual' }}</td>
+                <td>{{ event.attendees_count }}</td>
+                <td>
+                  <div class="carbon-badge {% if event.total_emissions > 1000 %}high{% elif event.total_emissions > 500 %}medium{% endif %}">
+                    {{ event.total_emissions }} kg CO₂e
+                  </div>
+                </td>
+                <td>
+                  <button class="btn btn-xs btn-outline" onclick="showEventDetails({{ event.id }})">Details</button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock mb-3"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <h4>No past events</h4>
+          <p class="text-muted">There are no past events to display.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade event-details-modal" id="eventDetailsModal" tabindex="-1" role="dialog" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="eventDetailsModalLabel">Event Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="event-loading text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p class="mt-3">Loading event details...</p>
+        </div>
+        
+        <div class="event-details" style="display: none;">
+          <div class="event-info-row">
+            <div class="event-info-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar event-info-icon"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <div>
+                <div class="font-weight-bold">Date</div>
+                <div id="eventDate"></div>
+              </div>
+            </div>
+            <div class="event-info-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map-pin event-info-icon"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              <div>
+                <div class="font-weight-bold">Location</div>
+                <div id="eventLocation"></div>
+              </div>
+            </div>
+            <div class="event-info-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users event-info-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              <div>
+                <div class="font-weight-bold">Attendees</div>
+                <div id="eventAttendees"></div>
+              </div>
+            </div>
+            <div class="event-info-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag event-info-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+              <div>
+                <div class="font-weight-bold">Type</div>
+                <div id="eventType"></div>
+              </div>
+            </div>
+          </div>
+          
+          <h4 class="mt-4 mb-3">Event Description</h4>
+          <p id="eventDescription"></p>
+          
+          <div class="row mt-4">
+            <div class="col-12 col-md-6">
+              <h4 class="mb-3">Carbon Footprint</h4>
+              <div class="event-sustainability-rating">
+                <div class="sustainability-score" id="sustainabilityScore">
+                  <span id="scoreValue">0</span>
+                </div>
+                <div>
+                  <h5>Sustainability Score</h5>
+                  <p class="text-muted mb-0" id="scoreText">Loading...</p>
+                </div>
+              </div>
+              
+              <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">Carbon Offset</h5>
+                  <button id="donateButton" class="btn btn-sm btn-success">
+                    <i class="fas fa-leaf mr-1"></i> Contribute to Offset
+                  </button>
+                  <span id="offsetPercentage">0%</span>
+                </div>
+                <div class="offset-bar">
+                  <div class="offset-progress" id="offsetProgress"></div>
+                </div>
+                <p class="text-muted mt-2 small" id="offsetText">Loading...</p>
+              </div>
+              
+              <h5 class="mt-4 mb-3">Sustainability Initiatives</h5>
+              <ul class="initiatives-list" id="initiativesList">
+                <li>Loading initiatives...</li>
+              </ul>
+            </div>
+            
+            <div class="col-12 col-md-6">
+              <h4 class="mb-3">Emissions Breakdown</h4>
+              <div class="chart-container" style="height: 250px;">
+                <canvas id="eventEmissionsChart"></canvas>
+              </div>
+              
+              <h5 class="mt-4 mb-3">Environmental Impact Equivalents</h5>
+              <div class="equivalence-card">
+                <div class="equivalence-icon">
+                  <i class="fas fa-tree"></i>
+                </div>
+                <div class="equivalence-text">
+                  <div class="equivalence-value" id="treesValue">0</div>
+                  <div class="equivalence-desc">Trees needed to absorb this carbon footprint in a year</div>
+                </div>
+              </div>
+              
+              <div class="equivalence-card">
+                <div class="equivalence-icon">
+                  <i class="fas fa-car"></i>
+                </div>
+                <div class="equivalence-text">
+                  <div class="equivalence-value" id="carMilesValue">0</div>
+                  <div class="equivalence-desc">Miles driven by an average gasoline car</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Chart colors
+    const colors = {
+      primary: '#27ae60',
+      secondary: '#3498db',
+      warning: '#f39c12',
+      danger: '#e74c3c',
+      light: '#ecf0f1',
+      dark: '#2c3e50',
+      travelColor: '#3498db',
+      venueColor: '#e74c3c',
+      accommodationColor: '#f39c12',
+      cateringColor: '#2ecc71',
+      materialsColor: '#9b59b6',
+      digitalColor: '#1abc9c'
+    };
+    
+    // Draw emissions breakdown chart
+    const emissionsCtx = document.getElementById('emissionsChart').getContext('2d');
+    const emissionsChart = new Chart(emissionsCtx, {
+      type: 'doughnut',
+      data: {
+        labels: {{ metrics.emissions_breakdown.labels|tojson }},
+        datasets: [{
+          data: {{ metrics.emissions_breakdown.data|tojson }},
+          backgroundColor: [
+            colors.travelColor,
+            colors.venueColor,
+            colors.accommodationColor,
+            colors.cateringColor,
+            colors.materialsColor,
+            colors.digitalColor
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        },
+        cutout: '65%'
+      }
+    });
+    
+    // Draw trend chart
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    const trendChart = new Chart(trendCtx, {
+      type: 'bar',
+      data: {
+        labels: {{ metrics.trend_data.labels|tojson }},
+        datasets: [{
+          label: 'Total Emissions (kg CO₂e)',
+          data: {{ metrics.trend_data.emissions|tojson }},
+          backgroundColor: colors.primary,
+          borderColor: colors.primary,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'kg CO₂e'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Quarter'
+            }
+          }
+        }
+      }
+    });
+    
+    // Make emissions categories interactive
+    const emissionCategories = document.querySelectorAll('.emission-category');
+    emissionCategories.forEach(category => {
+      category.addEventListener('click', function() {
+        const index = this.dataset.index;
+        
+        // Toggle active state
+        if (this.classList.contains('active')) {
+          // If already active, deactivate and reset all
+          emissionCategories.forEach(cat => {
+            cat.classList.remove('active', 'dimmed');
+          });
+          
+          // Reset chart highlights
+          emissionsChart.setActiveElements([]);
+        } else {
+          // Set this as active, dim others
+          emissionCategories.forEach(cat => {
+            if (cat === this) {
+              cat.classList.add('active');
+              cat.classList.remove('dimmed');
+            } else {
+              cat.classList.remove('active');
+              cat.classList.add('dimmed');
+            }
+          });
+          
+          // Highlight corresponding chart segment
+          emissionsChart.setActiveElements([{
+            datasetIndex: 0,
+            index: parseInt(index)
+          }]);
+        }
+        
+        emissionsChart.update();
+      });
+    });
+    
+    // Virtual vs In-person toggle
+    const eventTypeToggle = document.getElementById('eventTypeToggle');
+    const eventTypeOptions = document.querySelectorAll('.event-type-option');
+    
+    eventTypeOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        const type = this.dataset.type;
+        eventTypeToggle.className = 'event-type-toggle ' + type;
+        
+        // Here you would filter the data to show only virtual or in-person events
+        // For demonstration, we'll just change the chart
+        if (type === 'virtual') {
+          // Show more digital, less travel for virtual events
+          emissionsChart.data.datasets[0].data = [5, 0, 0, 0, 10, 85];
+        } else {
+          // Show original data for in-person
+          emissionsChart.data.datasets[0].data = {{ metrics.emissions_breakdown.data|tojson }};
+        }
+        
+        emissionsChart.update();
+      });
+    });
+    
+    // Toggle between quarterly and monthly view
+    const toggleQuarterlyView = document.getElementById('toggleQuarterlyView');
+    let isQuarterlyView = true;
+    
+    toggleQuarterlyView.addEventListener('click', function() {
+      isQuarterlyView = !isQuarterlyView;
+      const toggleText = document.querySelector('.toggle-text');
+      
+      if (isQuarterlyView) {
+        toggleText.textContent = 'Quarterly View';
+        trendChart.data.labels = {{ metrics.trend_data.labels|tojson }};
+        trendChart.data.datasets[0].data = {{ metrics.trend_data.emissions|tojson }};
+        trendChart.options.scales.x.title.text = 'Quarter';
+      } else {
+        toggleText.textContent = 'Monthly View';
+        // Simulate monthly data for demonstration
+        trendChart.data.labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Generate some random monthly data
+        const monthlyData = [];
+        for (let i = 0; i < 12; i++) {
+          monthlyData.push(Math.floor(Math.random() * 1000) + 200);
+        }
+        
+        trendChart.data.datasets[0].data = monthlyData;
+        trendChart.options.scales.x.title.text = 'Month';
+      }
+      
+      trendChart.update();
+    });
+  });
+  
+  // Function to show event details
+  function showEventDetails(eventId) {
+    const modal = document.getElementById('eventDetailsModal');
+    const loading = modal.querySelector('.event-loading');
+    const details = modal.querySelector('.event-details');
+    
+    // Show loading, hide details
+    loading.style.display = 'block';
+    details.style.display = 'none';
+    
+    // Show the modal
+    $('#eventDetailsModal').modal('show');
+    
+    // Fetch event details
+    fetch(`/company/api/event/${eventId}`)
+      .then(response => response.json())
+      .then(event => {
+        // Initialize the donate button
+        document.getElementById('donateButton').setAttribute('data-event-id', eventId);
+        document.getElementById('donateButton').onclick = function() {
+          createCheckoutSession(eventId);
+        };
+        // Update modal content with event data
+        document.getElementById('eventDetailsModalLabel').textContent = event.name;
+        document.getElementById('eventDate').textContent = `${event.start_date} to ${event.end_date}`;
+        document.getElementById('eventLocation').textContent = event.is_virtual ? 'Virtual Event' : event.location;
+        document.getElementById('eventAttendees').textContent = `${event.attendees_count} attendees`;
+        document.getElementById('eventType').textContent = event.event_type;
+        document.getElementById('eventDescription').textContent = event.description;
+        
+        // Set sustainability score
+        const scoreElement = document.getElementById('sustainabilityScore');
+        const scoreValue = document.getElementById('scoreValue');
+        scoreValue.textContent = event.sustainability_score;
+        
+        // Set score color based on value
+        let scoreColor, scoreText;
+        if (event.sustainability_score >= 80) {
+          scoreColor = '#27ae60';
+          scoreText = 'Excellent sustainability practices';
+        } else if (event.sustainability_score >= 60) {
+          scoreColor = '#3498db';
+          scoreText = 'Good sustainability practices';
+        } else if (event.sustainability_score >= 40) {
+          scoreColor = '#f39c12';
+          scoreText = 'Average sustainability practices';
+        } else {
+          scoreColor = '#e74c3c';
+          scoreText = 'Needs improvement';
+        }
+        
+        scoreElement.style.backgroundColor = scoreColor;
+        document.getElementById('scoreText').textContent = scoreText;
+        
+        // Set offset percentage
+        document.getElementById('offsetPercentage').textContent = `${event.carbon_offset_percentage}%`;
+        document.getElementById('offsetProgress').style.width = `${event.carbon_offset_percentage}%`;
+        document.getElementById('offsetText').textContent = `${event.co2_offset} kg CO₂e offset through sustainability initiatives`;
+        
+        // Set initiatives list
+        const initiativesList = document.getElementById('initiativesList');
+        initiativesList.innerHTML = '';
+        
+        if (event.sustainability_initiatives && event.sustainability_initiatives.length > 0) {
+          event.sustainability_initiatives.forEach(initiative => {
+            const li = document.createElement('li');
+            li.textContent = initiative;
+            initiativesList.appendChild(li);
+          });
+        } else {
+          const li = document.createElement('li');
+          li.textContent = 'No sustainability initiatives recorded for this event.';
+          initiativesList.appendChild(li);
+        }
+        
+        // Set impact equivalents
+        document.getElementById('treesValue').textContent = event.impact_equivalents.trees_planted;
+        document.getElementById('carMilesValue').textContent = event.impact_equivalents.car_miles.toLocaleString();
+        
+        // Create emissions breakdown chart
+        const chartCtx = document.getElementById('eventEmissionsChart').getContext('2d');
+        
+        // Destroy existing chart if it exists
+        if (window.eventEmissionsChart) {
+          window.eventEmissionsChart.destroy();
+        }
+        
+        window.eventEmissionsChart = new Chart(chartCtx, {
+          type: 'bar',
+          data: {
+            labels: event.emissions_breakdown.labels,
+            datasets: [{
+              label: 'kg CO₂e',
+              data: event.emissions_breakdown.data,
+              backgroundColor: [
+                '#3498db', // Travel
+                '#e74c3c', // Venue
+                '#f39c12', // Accommodation
+                '#2ecc71', // Catering
+                '#9b59b6', // Materials
+                '#1abc9c'  // Digital
+              ],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'kg CO₂e'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `${context.raw} kg CO₂e (${(context.raw / event.total_emissions * 100).toFixed(1)}%)`;
+                  }
+                }
+              }
+            }
+          }
+        });
+        
+        // Hide loading, show details
+        loading.style.display = 'none';
+        details.style.display = 'block';
+      })
+      .catch(error => {
+        console.error('Error fetching event details:', error);
+        loading.innerHTML = `<div class="alert alert-danger">Error loading event details. Please try again.</div>`;
+      });
+  }
+  
+  // Stripe checkout session creation
+  function createCheckoutSession(eventId) {
+    // Show loading indicator
+    const donateButton = document.getElementById('donateButton');
+    const originalText = donateButton.textContent;
+    donateButton.disabled = true;
+    donateButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+    
+    // Create a checkout session via the server
+    fetch('/company/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event_id: eventId,
+        amount: 1000  // $10.00 in cents
+      }),
+    })
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(session) {
+      if (session.error) {
+        // Handle any errors returned from the server
+        console.error('Error creating checkout session:', session.error);
+        donateButton.textContent = originalText;
+        donateButton.disabled = false;
+        alert('There was an error processing your donation. Please try again.');
+        return;
+      }
+      
+      // Redirect to Stripe Checkout
+      const stripe = Stripe(session.publicKey);
+      
+      stripe.redirectToCheckout({
+        sessionId: session.id
+      })
+      .then(function (result) {
+        if (result.error) {
+          // If redirectToCheckout fails, display the error to the customer
+          console.error(result.error.message);
+          donateButton.textContent = originalText;
+          donateButton.disabled = false;
+          alert('There was an error processing your donation. Please try again.');
+        }
+      });
+    })
+    .catch(function(error) {
+      console.error('Error:', error);
+      donateButton.textContent = originalText;
+      donateButton.disabled = false;
+      alert('There was an error processing your donation. Please try again.');
+    });
+  }
+</script>
+{% endblock %}

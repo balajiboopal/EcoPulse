@@ -1,0 +1,97 @@
+A Python module for calculating and scoring employee carbon footprints based on lifestyle choices, commuting habits, dietary preferences, and office-related activities.
+
+Core Features:
+- Input data structure for lifestyle factors (commuting distance/mode, diet, office usage)
+- Carbon footprint calculation using standardized emission factors
+- Impact score generation (0-100 scale)
+- Example/test case implementation with sample data
+
+Visual References:
+Inspired by EPA's carbon footprint calculator and Nature Conservancy's carbon calculator, known for their clear data presentation and educational approach.
+
+Style Guide:
+- Code Structure: Clear module organization, comprehensive comments
+- Documentation: Detailed docstrings for classes and functions
+- Data Format: Standardized units (kg CO₂, kWh, miles)
+- Testing: Include sample data and expected outputs
+
+
+A web-based Employee Dashboard for tracking and managing individual carbon footprints, featuring interactive data input, personalized feedback, and gamified elements to encourage sustainable practices.
+
+Core Features:
+- Input form for personal carbon data (commute details, diet choices, office habits)
+- Display personal carbon footprint score with peer comparison analytics
+- Show AI-driven personalized tips (3-5) based on user input
+- Interactive sustainability training module with gamified elements (Climate Quiz)
+
+Visual References:
+Inspired by Fitbit's wellness dashboard and Duolingo's gamified learning interface, combining data visualization with engaging interactive elements.
+
+Style Guide:
+- Colors: Primary #2ECC71 (eco green), Secondary #3498DB (ocean blue), Background #F9FAFB (cloud white), Text #2C3E50 (deep grey), Success #27AE60 (forest green), Warning #F1C40F (sunshine yellow)
+- Design: 
+  - Fonts: Inter for headers, Open Sans for body text
+  - Card-based layout with clear hierarchy
+  - Eco-friendly iconography
+  - Progress indicators and achievement badges
+  - Responsive design with mobile-first approach
+  - 16px base spacing with 8px increments
+
+
+A web-based Company Sustainability Dashboard that provides executives with clear insights into company-wide environmental impact metrics and improvement opportunities.
+
+Core Features:
+- Display company's total and per-employee carbon footprint using interactive charts and summary cards
+- Show compliance scoring (0-100) against sustainability targets with color-coded status indicators
+- Present carbon reduction forecasts and projected emissions based on current trends
+- Provide actionable sustainability recommendations with potential cost savings and tax benefits
+
+Visual References:
+Inspired by Stripe Analytics and Salesforce Sustainability Cloud, known for their clean data visualization and executive-friendly interfaces.
+
+Style Guide:
+- Colors: Primary #34A853 (eco green), Secondary #4285F4 (trust blue), Warning #FBBC05 (caution yellow), Danger #EA4335 (alert red), Background #F8F9FA (clean white), Text #202124 (charcoal)
+- Typography: SF Pro Display for headings, Inter for body text, Roboto Mono for metrics
+- Design: Clean card-based layout, prominent metrics, minimalist charts, ample white space, 24px grid system, responsive design optimized for desktop viewing
+
+
+A Python module that provides AI-driven features for a carbon footprint application, focusing on personalized recommendations and educational content generation.
+
+Core Features:
+- Generate personalized carbon reduction tips based on employee profiles (commute mode, diet preferences, etc.)
+- Create educational content including quiz questions and explanations about carbon footprint
+- Profile-based suggestion system that considers individual behaviors and patterns
+- Gamified learning exercises to keep employees engaged and informed
+
+Visual References:
+Inspired by Duolingo's gamification approach and Strava's personalized activity insights, known for their engaging user experience and personalized feedback systems.
+A carbon footprint forecasting module that provides predictive analytics and actionable insights for company-wide sustainability initiatives.
+
+Core Features:
+- Forecast future carbon metrics based on current data using a simple heuristic model (10% reduction per employee)
+- Generate customized sustainability tips and recommendations
+- Provide basic training modules with quiz questions for employee education
+- Implement pluggable architecture to support future AI/ML integration
+
+Visual References:
+Inspired by Watershed and Microsoft Sustainability Calculator, known for their clear presentation of environmental impact data and forecasting.
+
+Style Guide:
+- Colors: Primary #2ECC71 (eco green), Secondary #3498DB (blue), Background #F9FAFB (off-white), Text #2C3E50 (dark blue-grey), Accent #E74C3C (alert red)
+- Design: Inter/Source Sans Pro fonts, clean dashboard layout with forecast graphs, modular components, clear documentation blocks, responsive design with accessibility considerations
+
+
+A web application that integrates carbon calculation functionality and AI helpers using Flask framework, focusing on combining previously built components into a cohesive system.
+
+Core Features:
+- Integration of carbon calculation module for processing calculations
+- Implementation of AI helpers module for assistance
+- Flask-based web interface with proper folder structure
+- Complete setup for Replit deployment with necessary configurations
+
+Visual References:
+Inspired by Carbon Footprint Calculator and EPA's carbon tools, known for their clear data input forms and result displays.
+
+Style Guide:
+- Colors: Primary #2E7D32 (forest green), Secondary #1565C0 (ocean blue), Background #F5F5F5 (light grey), Text #212121 (dark grey), Accent #FFA000 (warm amber)
+- Design: Source Sans Pro/Roboto fonts, clean form layouts, 16px padding, card-based components, responsive design with clear section separation

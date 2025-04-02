@@ -1,0 +1,826 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Carbon Footprint{% endblock %}
+
+{% block head %}
+<style>
+  .section-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  
+  .section-toggle .toggle-btn {
+    padding: 12px 20px;
+    border: 1px solid var(--primary);
+    background: white;
+    color: var(--primary);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .section-toggle .toggle-btn:first-child {
+    border-radius: 6px 0 0 6px;
+  }
+  
+  .section-toggle .toggle-btn:last-child {
+    border-radius: 0 6px 6px 0;
+  }
+  
+  .section-toggle .toggle-btn.active {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .section-toggle .toggle-btn:hover:not(.active) {
+    background: rgba(46, 204, 113, 0.1);
+  }
+  
+  .toggle-icon {
+    margin-right: 8px;
+  }
+  
+  .form-section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  .form-section.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .payment-method {
+    border: 1px solid var(--light-grey);
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .payment-method:hover {
+    border-color: var(--primary);
+    background-color: rgba(46, 204, 113, 0.05);
+  }
+  
+  .payment-method.selected {
+    border-color: var(--primary);
+    background-color: rgba(46, 204, 113, 0.1);
+  }
+  
+  .payment-method-header {
+    display: flex;
+    align-items: center;
+  }
+  
+  .payment-method-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    color: var(--primary);
+  }
+  
+  .payment-method-content {
+    display: none;
+    padding-top: 15px;
+    margin-top: 15px;
+    border-top: 1px solid var(--light-grey);
+  }
+  
+  .payment-method.expanded .payment-method-content {
+    display: block;
+  }
+  
+  .connection-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-left: auto;
+  }
+  
+  .status-connected {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: var(--success);
+  }
+  
+  .status-disconnected {
+    background-color: rgba(189, 195, 199, 0.2);
+    color: var(--dark-grey);
+  }
+  
+  .transaction-preview {
+    background: var(--light-grey);
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+  }
+  
+  .transaction-item {
+    padding: 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .transaction-item:last-child {
+    border-bottom: none;
+  }
+  
+  .transaction-merchant {
+    font-weight: 500;
+  }
+  
+  .transaction-category {
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    background-color: rgba(52, 152, 219, 0.1);
+    color: var(--secondary);
+  }
+  
+  .carbon-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+    background-color: rgba(46, 204, 113, 0.05);
+    border-radius: 6px;
+    margin: 30px 0;
+  }
+  
+  .carbon-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 5px;
+  }
+  
+  .form-tabs {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    margin-bottom: 30px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container carbon-form">
+    <h1 class="page-title">Track Your Carbon Footprint</h1>
+    
+    <div class="section-toggle">
+        <button type="button" class="toggle-btn active" data-section="office-section">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toggle-icon">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+            </svg>
+            Office Footprint
+        </button>
+        <button type="button" class="toggle-btn" data-section="personal-section">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toggle-icon">
+                <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+            Personal Spending
+        </button>
+    </div>
+    
+    <!-- Office Footprint Section -->
+    <div id="office-section" class="form-section active">
+        <form method="post" action="{{ url_for('employee.carbon_form') }}">
+            <input type="hidden" name="form_type" value="office">
+            <div class="carbon-panel">
+                <div class="carbon-panel-header">
+                    <h2>Office Carbon Footprint</h2>
+                    <p class="text-muted">Track your work-related carbon emissions across different categories</p>
+                </div>
+                
+                <div class="categories-container">
+                    <!-- Commute Category -->
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"></path>
+                                    <circle cx="6.5" cy="14.5" r="1.5"></circle>
+                                    <circle cx="17.5" cy="14.5" r="1.5"></circle>
+                                </svg>
+                            </div>
+                            <h3>Commute</h3>
+                        </div>
+                        <div class="category-content">
+                            <div class="form-group">
+                                <label for="commute_distance">One-way commute distance (miles):</label>
+                                <input type="number" id="commute_distance" name="commute_distance" min="0" step="0.1" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="commute_days_by_car">Days/week by car:</label>
+                                    <input type="number" id="commute_days_by_car" name="commute_days_by_car" min="0" max="7" step="1" class="form-control" value="0">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="car_type">Type of car:</label>
+                                    <select id="car_type" name="car_type" class="form-control">
+                                        <option value="gas">Gas</option>
+                                        <option value="hybrid">Hybrid</option>
+                                        <option value="electric">Electric</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="commute_days_public_transit">Days/week public transit:</label>
+                                    <input type="number" id="commute_days_public_transit" name="commute_days_public_transit" min="0" max="7" step="1" class="form-control" value="0">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="commute_days_ev">Days/week EV:</label>
+                                    <input type="number" id="commute_days_ev" name="commute_days_ev" min="0" max="7" step="1" class="form-control" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Remote Work Category -->
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                                </svg>
+                            </div>
+                            <h3>Remote Work</h3>
+                        </div>
+                        <div class="category-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="remote_work_days">Days/week working remotely:</label>
+                                    <input type="number" id="remote_work_days" name="remote_work_days" min="0" max="7" step="1" class="form-control" value="0">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="video_conference_hours">Video conference hours/week:</label>
+                                    <input type="number" id="video_conference_hours" name="video_conference_hours" min="0" step="0.5" class="form-control" value="0">
+                                </div>
+                            </div>
+                            <div class="info-tip">
+                                <span class="tip-icon">💡</span>
+                                <span class="tip-text">Remote work reduces commuting emissions but still has a carbon footprint from home energy use and digital activities.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Business Travel Category -->
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                </svg>
+                            </div>
+                            <h3>Business Travel</h3>
+                        </div>
+                        <div class="category-content">
+                            <div class="form-group">
+                                <label for="air_travel_miles">Air travel miles (monthly):</label>
+                                <input type="number" id="air_travel_miles" name="air_travel_miles" min="0" step="10" class="form-control" value="0">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="hotel_nights">Hotel nights (monthly):</label>
+                                    <input type="number" id="hotel_nights" name="hotel_nights" min="0" step="1" class="form-control" value="0">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="rental_car_days">Rental car days (monthly):</label>
+                                    <input type="number" id="rental_car_days" name="rental_car_days" min="0" step="1" class="form-control" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Office Equipment Category -->
+                    <div class="category-card">
+                        <div class="category-header">
+                            <div class="category-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                                    <rect x="9" y="9" width="6" height="6"></rect>
+                                    <line x1="9" y1="1" x2="9" y2="4"></line>
+                                    <line x1="15" y1="1" x2="15" y2="4"></line>
+                                    <line x1="9" y1="20" x2="9" y2="23"></line>
+                                    <line x1="15" y1="20" x2="15" y2="23"></line>
+                                    <line x1="20" y1="9" x2="23" y2="9"></line>
+                                    <line x1="20" y1="14" x2="23" y2="14"></line>
+                                    <line x1="1" y1="9" x2="4" y2="9"></line>
+                                    <line x1="1" y1="14" x2="4" y2="14"></line>
+                                </svg>
+                            </div>
+                            <h3>Office Equipment</h3>
+                        </div>
+                        <div class="category-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="computer_hours">Computer usage (hours/day):</label>
+                                    <input type="number" id="computer_hours" name="computer_hours" min="0" max="24" step="0.5" class="form-control" value="8">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="printer_pages">Pages printed (weekly):</label>
+                                    <input type="number" id="printer_pages" name="printer_pages" min="0" step="1" class="form-control" value="0">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="hvac_usage">Office climate control usage:</label>
+                                <select id="hvac_usage" name="hvac_usage" class="form-control">
+                                    <option value="low">Low (minimal AC/heating)</option>
+                                    <option value="medium" selected>Medium (moderate temperature control)</option>
+                                    <option value="high">High (significant climate control)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carbon-panel-footer">
+                    <button type="submit" class="btn btn-success btn-lg">Calculate Office Footprint</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Personal Spending Section -->
+    <div id="personal-section" class="form-section">
+        <form method="post" action="{{ url_for('employee.carbon_form') }}">
+            <input type="hidden" name="form_type" value="personal">
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Connect Your Payment Methods</h2>
+                    <p class="text-muted mb-0">Link your payment methods to automatically track your carbon footprint from purchases.</p>
+                </div>
+                <div class="card-body">
+                    <!-- Payment Method: Credit/Debit Card -->
+                    <div class="payment-method" data-provider="card">
+                        <div class="payment-method-header">
+                            <div class="payment-method-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">Credit/Debit Card</h3>
+                                <p class="text-muted mb-0">Link your card through Stripe</p>
+                            </div>
+                            <span class="connection-status status-disconnected">Not Connected</span>
+                        </div>
+                        <div class="payment-method-content">
+                            <div class="form-group">
+                                <label for="card_name">Cardholder Name</label>
+                                <input type="text" id="card_name" name="card_name" class="form-control" placeholder="As it appears on your card">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="flex: 2;">
+                                    <label for="card_number">Card Number</label>
+                                    <input type="text" id="card_number" name="card_number" class="form-control" placeholder="•••• •••• •••• ••••">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="card_expiry">Expiry Date</label>
+                                    <input type="text" id="card_expiry" name="card_expiry" class="form-control" placeholder="MM/YY">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label for="card_cvc">CVC</label>
+                                    <input type="text" id="card_cvc" name="card_cvc" class="form-control" placeholder="•••">
+                                </div>
+                            </div>
+                            <div class="text-right mt-3">
+                                <button type="button" class="btn btn-primary connect-payment" data-provider="card">Connect Card</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method: PayPal -->
+                    <div class="payment-method" data-provider="paypal">
+                        <div class="payment-method-header">
+                            <div class="payment-method-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 9H2c-.5 0-.8-.4-.7-.9l2-7C3.4.4 3.9 0 4.5 0h7c.5 0 .9.4.7.9L10 9"></path>
+                                    <path d="M18 9h4c.5 0 .8-.4.7-.9l-2-7c-.1-.6-.6-1-1.2-1h-7c-.5 0-.9.4-.7.9L14 9"></path>
+                                    <path d="M11 11l-4 4.9V22c0 .5.5 1 1 1h8c.5 0 1-.5 1-1v-6.1L13 11h-2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">PayPal</h3>
+                                <p class="text-muted mb-0">Connect your PayPal account</p>
+                            </div>
+                            <span class="connection-status status-disconnected">Not Connected</span>
+                        </div>
+                        <div class="payment-method-content">
+                            <div class="form-group">
+                                <label for="paypal_email">PayPal Email</label>
+                                <input type="email" id="paypal_email" name="paypal_email" class="form-control" placeholder="your@email.com">
+                            </div>
+                            <div class="text-right mt-3">
+                                <button type="button" class="btn btn-primary connect-payment" data-provider="paypal">Connect PayPal</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method: Bank Account -->
+                    <div class="payment-method" data-provider="bank">
+                        <div class="payment-method-header">
+                            <div class="payment-method-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">Bank Account</h3>
+                                <p class="text-muted mb-0">Connect your checking account</p>
+                            </div>
+                            <span class="connection-status status-disconnected">Not Connected</span>
+                        </div>
+                        <div class="payment-method-content">
+                            <div class="form-group">
+                                <label for="bank_name">Bank Name</label>
+                                <select id="bank_name" name="bank_name" class="form-control">
+                                    <option value="">Select your bank</option>
+                                    <option value="chase">Chase</option>
+                                    <option value="bofa">Bank of America</option>
+                                    <option value="wells_fargo">Wells Fargo</option>
+                                    <option value="citi">Citibank</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="routing_number">Routing Number</label>
+                                    <input type="text" id="routing_number" name="routing_number" class="form-control" placeholder="9 digits">
+                                </div>
+                                <div class="form-group">
+                                    <label for="account_number">Account Number</label>
+                                    <input type="text" id="account_number" name="account_number" class="form-control" placeholder="Your account number">
+                                </div>
+                            </div>
+                            <div class="text-right mt-3">
+                                <button type="button" class="btn btn-primary connect-payment" data-provider="bank">Connect Bank</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Manual Transaction Entry (for demonstration) -->
+                    <div class="payment-method expanded" data-provider="manual">
+                        <div class="payment-method-header">
+                            <div class="payment-method-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="mb-0">Manual Entry</h3>
+                                <p class="text-muted mb-0">Add transactions manually</p>
+                            </div>
+                        </div>
+                        <div class="payment-method-content" style="display: block;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="transaction_date">Date</label>
+                                    <input type="date" id="transaction_date" name="transaction_date" class="form-control" value="{{ current_date }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="merchant">Merchant</label>
+                                    <input type="text" id="merchant" name="merchant" class="form-control" placeholder="Store or business name">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="category">Category</label>
+                                    <select id="category" name="category" class="form-control">
+                                        <option value="">Select category</option>
+                                        <option value="food">Food & Dining</option>
+                                        <option value="groceries">Groceries</option>
+                                        <option value="transportation">Transportation</option>
+                                        <option value="shopping">Shopping</option>
+                                        <option value="utilities">Utilities</option>
+                                        <option value="travel">Travel</option>
+                                        <option value="entertainment">Entertainment</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="amount">Amount</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">$</span>
+                                        </div>
+                                        <input type="number" id="amount" name="amount" class="form-control" step="0.01" min="0" placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description (Optional)</label>
+                                <textarea id="description" name="description" class="form-control" rows="2" placeholder="Additional details about this transaction"></textarea>
+                            </div>
+                            <div class="text-right mt-3">
+                                <button type="button" class="btn btn-secondary" id="add-transaction">Add Transaction</button>
+                            </div>
+                            
+                            <!-- Transaction Preview (for demo) -->
+                            <div class="transaction-preview">
+                                <h4>Recent Transactions</h4>
+                                <div class="transaction-item">
+                                    <div>
+                                        <div class="transaction-merchant">Whole Foods Market</div>
+                                        <span class="transaction-category">Groceries</span>
+                                    </div>
+                                    <div class="transaction-amount">$89.42</div>
+                                </div>
+                                <div class="transaction-item">
+                                    <div>
+                                        <div class="transaction-merchant">Starbucks</div>
+                                        <span class="transaction-category">Food</span>
+                                    </div>
+                                    <div class="transaction-amount">$5.25</div>
+                                </div>
+                                <div class="transaction-item">
+                                    <div>
+                                        <div class="transaction-merchant">Chevron Gas Station</div>
+                                        <span class="transaction-category">Transportation</span>
+                                    </div>
+                                    <div class="transaction-amount">$48.73</div>
+                                </div>
+                                <div id="new-transactions"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="carbon-info">
+                <p>Your estimated carbon footprint from personal spending:</p>
+                <div class="carbon-value">15.8 kg CO₂</div>
+                <p>Based on transaction data from the last 30 days</p>
+            </div>
+            
+            <div class="form-submit text-center">
+                <button type="submit" class="btn btn-success btn-lg">Calculate Personal Footprint</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="carbon-form-info mt-5">
+        <h3>Why Track Your Carbon Footprint?</h3>
+        <p>Understanding your carbon footprint is the first step toward reducing your environmental impact. By tracking both your office activities and personal spending, you can identify areas for improvement and make informed choices to reduce your emissions.</p>
+        
+        <h3>Office vs. Personal Tracking</h3>
+        <p><strong>Office Tracking:</strong> Monitors your carbon footprint related to work activities like commuting, remote work, business travel, and office equipment usage.</p>
+        <p><strong>Personal Spending:</strong> Analyzes your purchase data from credit cards, bank accounts, and payment services to estimate the carbon footprint of your personal lifestyle choices.</p>
+        
+        <h3>How We Calculate Your Footprint</h3>
+        <p>We use industry-standard emission factors to convert your activities and purchases into carbon equivalent emissions. Our calculations account for various factors including transportation efficiency, energy sources, and the carbon intensity of goods and services.</p>
+        
+        <h3>Privacy Information</h3>
+        <p>Your data is used only to calculate your carbon footprint and provide personalized recommendations. Payment data is securely processed and never stored by EcoPulse. Aggregated, anonymized data may be used for company-wide reporting, but your individual data remains private.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Section toggle
+        const toggleBtns = document.querySelectorAll('.toggle-btn');
+        const formSections = document.querySelectorAll('.form-section');
+        
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                toggleBtns.forEach(b => b.classList.remove('active'));
+                // Add active class to the clicked button
+                this.classList.add('active');
+                
+                // Hide all sections
+                formSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show the selected section
+                const sectionId = this.getAttribute('data-section');
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+        
+        // Payment method expansion/collapse
+        const paymentMethods = document.querySelectorAll('.payment-method');
+        
+        paymentMethods.forEach(method => {
+            if (!method.classList.contains('expanded')) {
+                const header = method.querySelector('.payment-method-header');
+                header.addEventListener('click', function() {
+                    // Close all other methods
+                    paymentMethods.forEach(m => {
+                        if (m !== method && m.classList.contains('expanded')) {
+                            m.classList.remove('expanded');
+                            m.querySelector('.payment-method-content').style.display = 'none';
+                        }
+                    });
+                    
+                    // Toggle this method
+                    method.classList.toggle('expanded');
+                    const content = method.querySelector('.payment-method-content');
+                    content.style.display = method.classList.contains('expanded') ? 'block' : 'none';
+                });
+            }
+        });
+        
+        // Connect payment button functionality
+        const connectButtons = document.querySelectorAll('.connect-payment');
+        
+        connectButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const provider = this.getAttribute('data-provider');
+                const method = document.querySelector(`.payment-method[data-provider="${provider}"]`);
+                const statusBadge = method.querySelector('.connection-status');
+                
+                // Simulate connection success
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Connecting...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    statusBadge.className = 'connection-status status-connected';
+                    statusBadge.textContent = 'Connected';
+                    this.innerHTML = 'Connected';
+                    method.classList.remove('expanded');
+                    method.classList.add('selected');
+                    
+                    // Show a success message
+                    alert(`Successfully connected to ${provider.charAt(0).toUpperCase() + provider.slice(1)}!`);
+                }, 1500);
+            });
+        });
+        
+        // Add transaction functionality
+        const addTransactionBtn = document.getElementById('add-transaction');
+        const newTransactionsContainer = document.getElementById('new-transactions');
+        
+        if (addTransactionBtn) {
+            addTransactionBtn.addEventListener('click', function() {
+                const merchant = document.getElementById('merchant').value;
+                const category = document.getElementById('category').value;
+                const amount = document.getElementById('amount').value;
+                
+                if (!merchant || !category || !amount) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Create new transaction item
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                transactionItem.innerHTML = `
+                    <div>
+                        <div class="transaction-merchant">${merchant}</div>
+                        <span class="transaction-category">${document.getElementById('category').options[document.getElementById('category').selectedIndex].text}</span>
+                    </div>
+                    <div class="transaction-amount">$${parseFloat(amount).toFixed(2)}</div>
+                `;
+                
+                newTransactionsContainer.prepend(transactionItem);
+                
+                // Clear the form
+                document.getElementById('merchant').value = '';
+                document.getElementById('category').value = '';
+                document.getElementById('amount').value = '';
+                document.getElementById('description').value = '';
+            });
+        }
+        
+        // Tab navigation for Office section
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const nextBtns = document.querySelectorAll('.next-tab');
+        const prevBtns = document.querySelectorAll('.prev-tab');
+        
+        // Function to show a specific tab
+        function showTab(tabId) {
+            // Hide all tabs
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Deactivate all tab buttons
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show the selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Activate the corresponding tab button
+            document.querySelector(`.tab-btn[data-target="${tabId}"]`).classList.add('active');
+            
+            // Scroll to top of form
+            document.querySelector('.form-tabs').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Tab button click event
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-target');
+                showTab(tabId);
+            });
+        });
+        
+        // Next button click event
+        nextBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-target');
+                showTab(tabId);
+            });
+        });
+        
+        // Previous button click event
+        prevBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-target');
+                showTab(tabId);
+            });
+        });
+        
+        // Field validations and dependencies
+        
+        // Commute days validation (total shouldn't exceed 7)
+        const commuteDaysFields = [
+            document.getElementById('commute_days_by_car'),
+            document.getElementById('commute_days_public_transit'),
+            document.getElementById('commute_days_ev'),
+            document.getElementById('remote_work_days')
+        ];
+        
+        commuteDaysFields.forEach(field => {
+            if (field) {
+                field.addEventListener('change', function() {
+                    validateCommuteDays();
+                });
+            }
+        });
+        
+        function validateCommuteDays() {
+            const byCarDays = parseInt(document.getElementById('commute_days_by_car').value) || 0;
+            const transitDays = parseInt(document.getElementById('commute_days_public_transit').value) || 0;
+            const evDays = parseInt(document.getElementById('commute_days_ev').value) || 0;
+            const remoteDays = parseInt(document.getElementById('remote_work_days').value) || 0;
+            
+            const totalDays = byCarDays + transitDays + evDays + remoteDays;
+            
+            if (totalDays > 7) {
+                alert('The total number of commute and remote days cannot exceed 7.');
+                
+                // Reset the value of the field that was just changed
+                const changedField = document.activeElement;
+                if (commuteDaysFields.includes(changedField)) {
+                    changedField.value = 0;
+                }
+            }
+        }
+        
+        // Car type field is only relevant if commuting by car
+        const carTypeField = document.getElementById('car_type');
+        const carDaysField = document.getElementById('commute_days_by_car');
+        
+        if (carDaysField && carTypeField) {
+            carDaysField.addEventListener('change', function() {
+                if (parseInt(this.value) > 0) {
+                    carTypeField.removeAttribute('disabled');
+                } else {
+                    carTypeField.setAttribute('disabled', 'disabled');
+                }
+            });
+            
+            // Initialize car type field state
+            if (parseInt(carDaysField.value) === 0) {
+                carTypeField.setAttribute('disabled', 'disabled');
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle with Gradient -->
+  <circle cx="250" cy="250" r="250" fill="url(#gradient)"/>
+  
+  <!-- Pulse Lines -->
+  <path d="M100 250 L150 250 L170 200 L230 300 L270 180 L310 250 L350 250 L400 250" 
+        stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"
+        fill="none" stroke-dasharray="0">
+    <animate attributeName="stroke-dasharray" values="500;0" dur="3s" begin="0s" repeatCount="1" fill="freeze"/>
+    <animate attributeName="stroke-dashoffset" values="500;0" dur="3s" begin="0s" repeatCount="1" fill="freeze"/>
+  </path>
+  
+  <!-- Leaf Overlay -->
+  <path d="M280 170 C330 150, 350 200, 330 240 C380 200, 350 120, 280 170 Z" 
+        fill="#ffffff" fill-opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" 
+                      from="0 305 205" to="10 305 205" dur="2s" 
+                      begin="1s" repeatCount="1" fill="freeze"/>
+  </path>
+  
+  <path d="M190 170 C140 150, 120 200, 140 240 C90 200, 120 120, 190 170 Z" 
+        fill="#ffffff" fill-opacity="0.4">
+    <animateTransform attributeName="transform" type="rotate" 
+                      from="0 165 205" to="-10 165 205" dur="2s" 
+                      begin="1s" repeatCount="1" fill="freeze"/>
+  </path>
+  
+  <!-- Circular Gradient Animation -->
+  <circle cx="250" cy="250" r="180" fill="url(#pulse)" opacity="0">
+    <animate attributeName="opacity" values="0;0.6;0" dur="4s" begin="2s" repeatCount="1" fill="freeze"/>
+    <animate attributeName="r" values="0;200" dur="4s" begin="2s" repeatCount="1" fill="freeze"/>
+  </circle>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2ECC71"/>
+      <stop offset="100%" stop-color="#3498DB"/>
+    </linearGradient>
+    
+    <radialGradient id="pulse" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+</svg>

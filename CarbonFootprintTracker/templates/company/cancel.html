@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Donation Cancelled - EcoPulse{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .card {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .bg-light {
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  .bg-light:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  }
+  .buttons .btn {
+    margin: 0 5px;
+    transition: all 0.3s ease;
+  }
+  .buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <div class="mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          </div>
+          <h2 class="card-title mb-4">Donation Cancelled</h2>
+          <p class="card-text lead">Your donation process was cancelled.</p>
+          <p class="card-text text-muted mb-4">No payment has been processed. If you experienced any issues during checkout, please try again or contact our support team.</p>
+          
+          <div class="row justify-content-center mb-4">
+            <div class="col-md-8">
+              <div class="p-3 rounded bg-light">
+                <h5>Why Donate?</h5>
+                <p class="mb-0">Your contributions help us offset carbon emissions from company events and activities, supporting global sustainability efforts and environmental conservation projects.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="buttons">
+            <a href="{{ url_for('company.events') }}" class="btn btn-secondary mr-2">Return to Events</a>
+            <button class="btn btn-success" onclick="history.back()">Try Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

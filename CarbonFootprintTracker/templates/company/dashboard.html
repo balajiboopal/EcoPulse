@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Company Sustainability Dashboard{% endblock %}
+
+{% block body_class %}company-dashboard{% endblock %}
+
+{% block content %}
+<h1>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2">
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
+    </svg>
+    Company Sustainability Dashboard
+</h1>
+
+<div class="row">
+    <!-- Summary metrics section -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Company Sustainability Overview</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="metric company-metric">
+                            <div class="metric-value">{{ metrics.total_emissions }}</div>
+                            <div class="metric-label">Total CO₂ (kg)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric company-metric">
+                            <div class="metric-value">{{ metrics.avg_score }}</div>
+                            <div class="metric-label">Average Carbon Score</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric company-metric">
+                            <div class="metric-value">{{ metrics.per_employee }}</div>
+                            <div class="metric-label">kg CO₂ Per Employee</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric company-metric">
+                            <div class="metric-value {% if metrics.change_direction == 'increase' %}text-danger{% else %}text-success{% endif %}">
+                                {% if metrics.change_direction == 'increase' %}+{% else %}-{% endif %}{{ metrics.change_percentage }}%
+                            </div>
+                            <div class="metric-label">Month-over-Month</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h4>Employee Participation</h4>
+                        <div class="progress" style="height: 24px;">
+                            {% set participation = (metrics.employees_with_data / metrics.employee_count * 100)|round|int if metrics.employee_count > 0 else 0 %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ participation }}%;" aria-valuenow="{{ participation }}" aria-valuemin="0" aria-valuemax="100">{{ participation }}%</div>
+                        </div>
+                        <p class="mt-2">{{ metrics.employees_with_data }} out of {{ metrics.employee_count }} employees tracking carbon footprint</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Controls</h4>
+                        <div class="d-flex">
+                            <div class="me-3 flex-grow-1">
+                                <label for="department-filter" class="form-label">Department</label>
+                                <select id="department-filter" class="form-control">
+                                    <option value="all">All Departments</option>
+                                    {% for dept in department_data %}
+                                    <option value="{{ dept }}">{{ dept }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="flex-grow-1">
+                                <label for="date-range" class="form-label">Date Range</label>
+                                <select id="date-range" class="form-control">
+                                    <option value="month">Current Month</option>
+                                    <option value="quarter">Current Quarter</option>
+                                    <option value="year">Current Year</option>
+                                    <option value="custom">Custom Range</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Department comparison section -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Department Comparison</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="department-chart"></canvas>
+                </div>
+                
+                <div class="table-responsive mt-3">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Employees</th>
+                                <th>Avg. Score</th>
+                                <th>Avg. Emissions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept, data in department_data.items() %}
+                            <tr>
+                                <td>{{ dept }}</td>
+                                <td>{{ data.count }}</td>
+                                <td>{{ data.avg_score }}</td>
+                                <td>{{ data.avg_emissions }} kg</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trend analysis section -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">6-Month Trend Analysis</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+                
+                <div class="mt-3">
+                    <h5>Key Insights</h5>
+                    <ul>
+                        {% if trend_data|length > 1 %}
+                            {% set latest = trend_data[-1] %}
+                            {% set previous = trend_data[-2] %}
+                            {% set emissions_change = ((latest.emissions - previous.emissions) / previous.emissions * 100)|round|int if previous.emissions > 0 else 0 %}
+                            {% set score_change = ((latest.score - previous.score) / previous.score * 100)|round|int if previous.score > 0 else 0 %}
+                            <li>
+                                Total emissions 
+                                {% if emissions_change > 0 %}
+                                    increased by <span class="text-danger">{{ emissions_change }}%</span>
+                                {% elif emissions_change < 0 %}
+                                    decreased by <span class="text-success">{{ emissions_change|abs }}%</span>
+                                {% else %}
+                                    remained stable
+                                {% endif %}
+                                from last month.
+                            </li>
+                            <li>
+                                Average carbon score
+                                {% if score_change > 0 %}
+                                    improved by <span class="text-success">{{ score_change }}%</span>
+                                {% elif score_change < 0 %}
+                                    declined by <span class="text-danger">{{ score_change|abs }}%</span>
+                                {% else %}
+                                    remained stable
+                                {% endif %}
+                                from last month.
+                            </li>
+                        {% else %}
+                            <li>Not enough historical data to show trends.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Goals section -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Sustainability Goals</h3>
+            </div>
+            <div class="card-body">
+                {% if goals %}
+                    {% for goal in goals %}
+                    <div class="goal-item mb-4">
+                        <div class="goal-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ goal.name }}</h5>
+                            <span class="badge bg-primary">
+                                {{ ((goal.current_value / goal.target_value) * 100)|round|int if goal.target_value > 0 else 0 }}%
+                            </span>
+                        </div>
+                        <p class="text-muted">{{ goal.description }}</p>
+                        <div class="goal-progress">
+                            <div class="progress-bar" style="width: {{ ((goal.current_value / goal.target_value) * 100)|round|int if goal.target_value > 0 else 0 }}%"></div>
+                        </div>
+                        <div class="goal-stats">
+                            <small>Current: {{ goal.current_value }} kg CO₂</small>
+                            <small>Target: {{ goal.target_value }} kg CO₂</small>
+                        </div>
+                        <div class="goal-details collapsed mt-2">
+                            <p>Deadline: {{ goal.deadline.strftime('%d %b %Y') }}</p>
+                            <div class="d-grid">
+                                <button class="btn btn-sm btn-outline">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-flag">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                            <line x1="4" y1="22" x2="4" y2="15"></line>
+                        </svg>
+                        <p class="mt-3">No sustainability goals have been set yet</p>
+                        <button class="btn btn-primary">Create Goals</button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Carbon forecast section -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Carbon Reduction Forecast</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="chart-container">
+                            <canvas id="company-forecast-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <h5>Annual Impact</h5>
+                        <div class="metric company-metric">
+                            <div class="metric-value text-success">{{ forecast_data.annual_savings }}</div>
+                            <div class="metric-label">kg CO₂ Savings</div>
+                        </div>
+                        <p>Based on {{ forecast_data.percent_reduction }}% annual reduction target</p>
+                        
+                        <h5 class="mt-4">Environmental Equivalents</h5>
+                        <ul>
+                            <li>{{ forecast_data.impact_equivalents.trees_planted }} trees planted</li>
+                            <li>{{ forecast_data.impact_equivalents.car_miles }} car miles avoided</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h5>Monthly Savings Projection</h5>
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="savings-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize company dashboard
+        initCompanyDashboard({
+            departmentData: {{ department_data|tojson }},
+            trendData: {{ trend_data|tojson }},
+            forecastData: {{ forecast_data|tojson }}
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+
+{% block title %}Peer Comparison{% endblock %}
+
+{% block content %}
+<div class="container peer-comparison">
+    <h1 class="page-title">Peer Comparison</h1>
+    
+    <div class="comparison-overview">
+        <div class="comparison-card your-position">
+            <h2>Your Position</h2>
+            <div class="position-overview">
+                <div class="position-graphic">
+                    <div class="position-circle">
+                        <span class="position-value">{{ percentile }}</span>
+                        <span class="position-label">Percentile</span>
+                    </div>
+                </div>
+                <div class="position-details">
+                    <p>You're performing better than <strong>{{ percentile }}%</strong> of your colleagues.</p>
+                    {% if percentile > 75 %}
+                    <p class="position-message success">Great job! You're a sustainability leader!</p>
+                    {% elif percentile > 50 %}
+                    <p class="position-message good">You're doing well! Can you reach the top 25%?</p>
+                    {% elif percentile > 25 %}
+                    <p class="position-message average">You're making progress. Keep improving!</p>
+                    {% else %}
+                    <p class="position-message needs-work">There's room for improvement. Check out the recommendations!</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="footprint-summary">
+                <h3>Your Carbon Footprint</h3>
+                <div class="footprint-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total</span>
+                        <span class="stat-value">{{ latest_footprint.total_footprint|round(1) }} kg</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Score</span>
+                        <span class="stat-value">{{ latest_footprint.footprint_score }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Rank</span>
+                        <span class="stat-value">
+                            {% if latest_footprint.rank_in_company %}
+                            #{{ latest_footprint.rank_in_company }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comparison-card averages">
+            <h2>Company Averages</h2>
+            <div class="averages-container">
+                <div class="average-item company">
+                    <h3>Company</h3>
+                    <div class="average-graphic">
+                        <div class="average-circle company">
+                            <span class="average-value">{{ company_avg.avg_score|int }}</span>
+                        </div>
+                    </div>
+                    <div class="average-details">
+                        <p>Average Score: <strong>{{ company_avg.avg_score|int }}</strong></p>
+                        <p>Average Footprint: <strong>{{ company_avg.avg_footprint|round(1) }} kg</strong></p>
+                        
+                        {% if latest_footprint.footprint_score > company_avg.avg_score %}
+                        <p class="comparison-result positive">
+                            <i class="fa fa-arrow-up"></i> Your score is {{ (latest_footprint.footprint_score - company_avg.avg_score)|int }} points above average
+                        </p>
+                        {% elif latest_footprint.footprint_score == company_avg.avg_score %}
+                        <p class="comparison-result neutral">
+                            <i class="fa fa-equals"></i> Your score is the same as the company average
+                        </p>
+                        {% else %}
+                        <p class="comparison-result negative">
+                            <i class="fa fa-arrow-down"></i> Your score is {{ (company_avg.avg_score - latest_footprint.footprint_score)|int }} points below average
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if dept_avg %}
+                <div class="average-item department">
+                    <h3>{{ user.department }}</h3>
+                    <div class="average-graphic">
+                        <div class="average-circle department">
+                            <span class="average-value">{{ dept_avg.avg_score|int }}</span>
+                        </div>
+                    </div>
+                    <div class="average-details">
+                        <p>Average Score: <strong>{{ dept_avg.avg_score|int }}</strong></p>
+                        <p>Average Footprint: <strong>{{ dept_avg.avg_footprint|round(1) }} kg</strong></p>
+                        
+                        {% if latest_footprint.footprint_score > dept_avg.avg_score %}
+                        <p class="comparison-result positive">
+                            <i class="fa fa-arrow-up"></i> Your score is {{ (latest_footprint.footprint_score - dept_avg.avg_score)|int }} points above department average
+                        </p>
+                        {% elif latest_footprint.footprint_score == dept_avg.avg_score %}
+                        <p class="comparison-result neutral">
+                            <i class="fa fa-equals"></i> Your score is the same as the department average
+                        </p>
+                        {% else %}
+                        <p class="comparison-result negative">
+                            <i class="fa fa-arrow-down"></i> Your score is {{ (dept_avg.avg_score - latest_footprint.footprint_score)|int }} points below department average
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="leaderboards">
+        <div class="leaderboard-section">
+            <h2>Company Leaderboard</h2>
+            <div class="leaderboard">
+                <div class="leaderboard-header">
+                    <span class="rank-col">Rank</span>
+                    <span class="name-col">Employee</span>
+                    <span class="score-col">Score</span>
+                    <span class="footprint-col">Footprint</span>
+                </div>
+                
+                {% for footprint in top_company %}
+                <div class="leaderboard-row {% if footprint.user_id == user.id %}highlight{% endif %}">
+                    <span class="rank-col">{{ loop.index }}</span>
+                    <span class="name-col">
+                        {% if footprint.user_id == user.id %}
+                        <strong>You</strong>
+                        {% else %}
+                        {{ footprint.user.username }}
+                        {% endif %}
+                    </span>
+                    <span class="score-col">{{ footprint.footprint_score }}</span>
+                    <span class="footprint-col">{{ footprint.total_footprint|round(1) }} kg</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% if top_department %}
+        <div class="leaderboard-section">
+            <h2>{{ user.department }} Leaderboard</h2>
+            <div class="leaderboard">
+                <div class="leaderboard-header">
+                    <span class="rank-col">Rank</span>
+                    <span class="name-col">Employee</span>
+                    <span class="score-col">Score</span>
+                    <span class="footprint-col">Footprint</span>
+                </div>
+                
+                {% for footprint in top_department %}
+                <div class="leaderboard-row {% if footprint.user_id == user.id %}highlight{% endif %}">
+                    <span class="rank-col">{{ loop.index }}</span>
+                    <span class="name-col">
+                        {% if footprint.user_id == user.id %}
+                        <strong>You</strong>
+                        {% else %}
+                        {{ footprint.user.username }}
+                        {% endif %}
+                    </span>
+                    <span class="score-col">{{ footprint.footprint_score }}</span>
+                    <span class="footprint-col">{{ footprint.total_footprint|round(1) }} kg</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="footprint-breakdown">
+        <h2>Your Footprint Breakdown</h2>
+        
+        <div class="visualization-toggle">
+            <button class="viz-toggle-btn active" data-viz="treemap">Treemap</button>
+            <button class="viz-toggle-btn" data-viz="doughnut">Doughnut</button>
+            <button class="viz-toggle-btn" data-viz="bar">Bar Chart</button>
+        </div>
+        
+        <div class="breakdown-chart-container">
+            <div id="treemapChart" class="chart-viz active"></div>
+            <canvas id="breakdownChart" class="chart-viz"></canvas>
+            <canvas id="barChart" class="chart-viz"></canvas>
+        </div>
+        
+        <div class="breakdown-components">
+            <div class="component personal interactive-component" data-category="personal">
+                <h3>Personal</h3>
+                <div class="component-value">
+                    {% if latest_footprint.commute_footprint is defined %}
+                        {{ latest_footprint.commute_footprint|round(1) }} kg
+                    {% else %}
+                        {{ (latest_footprint.total_footprint * 0.4)|round(1) }} kg (estimated)
+                    {% endif %}
+                </div>
+                <div class="component-percentage">
+                    {% if latest_footprint.commute_footprint is defined %}
+                        {{ (latest_footprint.commute_footprint / latest_footprint.total_footprint * 100)|round|int if latest_footprint.total_footprint else 0 }}%
+                    {% else %}
+                        40% (estimated)
+                    {% endif %}
+                </div>
+                <div class="component-details">
+                    <p>Your personal lifestyle choices contribute significantly to your carbon footprint.</p>
+                    <ul class="component-tips">
+                        <li>Reducing meat consumption can lower your carbon impact</li>
+                        <li>Choose locally-sourced products when possible</li>
+                        <li>Using energy-efficient appliances at home matters</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="component travel interactive-component" data-category="travel">
+                <h3>Business Travel</h3>
+                <div class="component-value">
+                    {% if latest_footprint.travel_footprint is defined %}
+                        {{ latest_footprint.travel_footprint|round(1) }} kg
+                    {% else %}
+                        {{ (latest_footprint.total_footprint * 0.2)|round(1) }} kg (estimated)
+                    {% endif %}
+                </div>
+                <div class="component-percentage">
+                    {% if latest_footprint.travel_footprint is defined %}
+                        {{ (latest_footprint.travel_footprint / latest_footprint.total_footprint * 100)|round|int if latest_footprint.total_footprint else 0 }}%
+                    {% else %}
+                        20% (estimated)
+                    {% endif %}
+                </div>
+                <div class="component-details">
+                    <p>Air travel has a particularly high carbon impact per mile.</p>
+                    <ul class="component-tips">
+                        <li>Try replacing some trips with virtual meetings</li>
+                        <li>Direct flights produce less emissions than connecting flights</li>
+                        <li>Train travel produces 75% less CO2 than flying for shorter trips</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="component office interactive-component" data-category="office">
+                <h3>Office Usage</h3>
+                <div class="component-value">
+                    {% if latest_footprint.office_footprint is defined %}
+                        {{ latest_footprint.office_footprint|round(1) }} kg
+                    {% else %}
+                        {{ (latest_footprint.total_footprint * 0.4)|round(1) }} kg (estimated)
+                    {% endif %}
+                </div>
+                <div class="component-percentage">
+                    {% if latest_footprint.office_footprint is defined %}
+                        {{ (latest_footprint.office_footprint / latest_footprint.total_footprint * 100)|round|int if latest_footprint.total_footprint else 0 }}%
+                    {% else %}
+                        40% (estimated)
+                    {% endif %}
+                </div>
+                <div class="component-details">
+                    <p>Energy use and resources in the office impact your work carbon footprint.</p>
+                    <ul class="component-tips">
+                        <li>Turn off equipment when not in use (saving 5-10% energy)</li>
+                        <li>Reduce printing and go digital when possible</li>
+                        <li>Use natural lighting and adjust thermostat settings</li>
+                    </ul>
+                </div>
+            </div>
+            
+            {% if latest_footprint.has_transaction_data is defined and latest_footprint.has_transaction_data %}
+            <div class="component transactions interactive-component" data-category="transactions">
+                <h3>Transactions</h3>
+                <div class="component-value">{{ latest_footprint.transaction_footprint|round(1) }} kg</div>
+                <div class="component-percentage">{{ (latest_footprint.transaction_footprint / latest_footprint.total_footprint * 100)|round|int if latest_footprint.total_footprint else 0 }}%</div>
+                <div class="component-details">
+                    <p>Your spending habits impact your carbon footprint through the products you purchase.</p>
+                    <ul class="component-tips">
+                        <li>Consider suppliers with sustainable practices</li>
+                        <li>Look for carbon-neutral options when available</li>
+                        <li>Buy locally produced goods when possible</li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="improvement-suggestions">
+        <h2>How to Improve Your Ranking</h2>
+        
+        <div class="suggestions-grid">
+            <div class="suggestion-card">
+                <div class="suggestion-icon">
+                    <i class="fa fa-leaf"></i>
+                </div>
+                <h3>Personal Lifestyle</h3>
+                <ul>
+                    <li>Reduce meat consumption 1-2 days per week</li>
+                    <li>Choose locally sourced and seasonal foods</li>
+                    <li>Use energy-efficient appliances at home</li>
+                    <li>Consider reusable products over disposables</li>
+                </ul>
+            </div>
+            
+            <div class="suggestion-card">
+                <div class="suggestion-icon">
+                    <i class="fa fa-plane"></i>
+                </div>
+                <h3>Business Travel</h3>
+                <ul>
+                    <li>Use virtual meetings instead of travel when possible</li>
+                    <li>Combine multiple meetings into single trips</li>
+                    <li>Choose direct flights over connecting ones</li>
+                    <li>Consider train travel for short-to-medium trips</li>
+                </ul>
+            </div>
+            
+            <div class="suggestion-card">
+                <div class="suggestion-icon">
+                    <i class="fa fa-building"></i>
+                </div>
+                <h3>Office Practices</h3>
+                <ul>
+                    <li>Turn off equipment when not in use</li>
+                    <li>Reduce paper usage and print double-sided</li>
+                    <li>Use natural lighting when possible</li>
+                    <li>Adjust thermostat to save energy</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+<script src="{{ url_for('static', filename='js/peer_comparison.js') }}"></script>
+
+<!-- Hidden input fields for chart data -->
+<input type="hidden" id="personal-footprint" value="{% if latest_footprint.commute_footprint is defined %}{{ latest_footprint.commute_footprint }}{% else %}{{ latest_footprint.total_footprint * 0.4 }}{% endif %}">
+<input type="hidden" id="travel-footprint" value="{% if latest_footprint.travel_footprint is defined %}{{ latest_footprint.travel_footprint }}{% else %}{{ latest_footprint.total_footprint * 0.2 }}{% endif %}">
+<input type="hidden" id="office-footprint" value="{% if latest_footprint.office_footprint is defined %}{{ latest_footprint.office_footprint }}{% else %}{{ latest_footprint.total_footprint * 0.4 }}{% endif %}">
+<input type="hidden" id="transactions-footprint" value="{% if latest_footprint.transaction_footprint is defined and latest_footprint.has_transaction_data is defined and latest_footprint.has_transaction_data %}{{ latest_footprint.transaction_footprint }}{% else %}0{% endif %}">
+{% endblock %}

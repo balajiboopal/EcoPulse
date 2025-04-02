@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}EcoPulse - Track Your Green Trajectory{% endblock %}
+
+{% block head %}
+<style>
+  .hero-section {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    padding: 80px 0;
+    color: white;
+    border-radius: 12px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("{{ url_for('static', filename='img/wave-pattern.svg') }}");
+    background-size: cover;
+    opacity: 0.1;
+    z-index: 0;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .hero-subtitle {
+    font-size: 1.25rem;
+    margin-bottom: 30px;
+    max-width: 800px;
+  }
+  
+  .feature-card {
+    text-align: center;
+    padding: 30px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+  
+  .feature-card:hover::before {
+    transform: scaleX(1);
+  }
+  
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(46, 204, 113, 0.1);
+    margin-bottom: 20px;
+    color: var(--primary);
+    transition: all 0.3s ease;
+  }
+  
+  .feature-card:hover .feature-icon {
+    background-color: var(--primary);
+    color: white;
+    transform: rotate(10deg);
+  }
+  
+  .feature-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+  
+  .cta-section {
+    background-color: rgba(46, 204, 113, 0.05);
+    padding: 60px 0;
+    border-radius: 12px;
+    margin-top: 40px;
+    text-align: center;
+  }
+
+  .login-container {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .auth-options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+
+  .testimonial {
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    position: relative;
+    background: white;
+  }
+
+  .testimonial-content {
+    font-style: italic;
+    margin-bottom: 15px;
+  }
+
+  .testimonial-author {
+    font-weight: 600;
+  }
+
+  .testimonial-company {
+    color: var(--dark-grey);
+    font-size: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+  <div class="container hero-content">
+    <div class="row">
+      <div class="col-md-7">
+        <h1 class="hero-title">Track, Analyze & Reduce Your Company's Carbon Footprint</h1>
+        <p class="hero-subtitle">EcoPulse empowers employees and executives with actionable sustainability insights. Our platform seamlessly integrates with your existing workflows to provide comprehensive carbon tracking and reduction strategies.</p>
+        <div class="d-flex gap-3">
+          <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg">Log In</a>
+          <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-lg">Get Started</a>
+        </div>
+      </div>
+      <div class="col-md-5 text-center">
+        <img src="{{ url_for('static', filename='img/ecopulse_logo.svg') }}" alt="EcoPulse Logo" style="max-width: 280px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row mb-5">
+    <div class="col-md-4 mb-4">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+        </div>
+        <h3 class="feature-title">Automated Tracking</h3>
+        <p>Automatically capture data from card transactions, travel records, and office equipment usage to build a comprehensive carbon profile with minimal manual input.</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <h3 class="feature-title">Real-time Insights</h3>
+        <p>Get personalized recommendations and real-time insights to reduce your carbon footprint. Track your progress over time and see the impact of your changes.</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <h3 class="feature-title">Company Leaderboards</h3>
+        <p>Foster friendly competition with departmental and company-wide leaderboards. Recognize and reward your sustainability champions.</p>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <div class="cta-section">
+    <h2>Ready to Start Your Green Trajectory?</h2>
+    <p class="mb-4">Join thousands of forward-thinking companies making a positive environmental impact.</p>
+    <div class="login-container">
+      <div class="card">
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="form-group mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            
+            <div class="form-group mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block w-100">Log In</button>
+          </form>
+          
+          <div class="auth-options">
+            <a href="{{ url_for('auth.register') }}">Create Account</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

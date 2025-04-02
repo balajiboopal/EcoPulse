@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Sustainability Quiz{% endblock %}
+
+{% block body_class %}quiz-page{% endblock %}
+
+{% block content %}
+<h1>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-help-circle">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+    Climate Knowledge Quiz
+</h1>
+
+<div class="quiz-container">
+    {% if completed %}
+        <!-- Quiz results display -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Your Quiz Results</h3>
+            </div>
+            <div class="card-body">
+                <div class="quiz-results">
+                    <div class="score-display {% if results.percentage > 70 %}score-good{% elif results.percentage > 40 %}score-medium{% else %}score-bad{% endif %}">
+                        <span class="score-value">{{ results.percentage }}%</span>
+                    </div>
+                    <h3>You scored {{ results.score }} out of {{ results.total }}</h3>
+                    <p>
+                        {% if results.percentage > 80 %}
+                            Excellent job! You're a climate knowledge expert.
+                        {% elif results.percentage > 60 %}
+                            Good work! You have a solid understanding of climate issues.
+                        {% elif results.percentage > 40 %}
+                            Not bad! You have some knowledge, but there's room to learn more.
+                        {% else %}
+                            You have some learning to do, but that's why we're here!
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="result-breakdown">
+                    <h4>Question Breakdown</h4>
+                    {% for result in results.results %}
+                        <div class="result-item">
+                            <h5 class="{% if result.correct %}result-correct{% else %}result-incorrect{% endif %}">
+                                {{ loop.index }}. {{ result.question_text }}
+                                {% if result.correct %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                {% else %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                                    </svg>
+                                {% endif %}
+                            </h5>
+                            {% if not result.correct %}
+                                <p class="mb-1">You selected: <strong>{{ result.selected_answer }}</strong></p>
+                                <p class="mb-1">Correct answer: <strong>{{ result.correct_text }}</strong></p>
+                            {% endif %}
+                            <p class="text-muted mt-2">{{ result.explanation }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('employee.take_quiz') }}" class="btn btn-primary">Take Another Quiz</a>
+                    <a href="{{ url_for('employee.dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Quiz questions display -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Test Your Sustainability Knowledge</h3>
+            </div>
+            <div class="card-body">
+                <p>Answer the following questions to test your knowledge about carbon footprints and sustainability.</p>
+                
+                <form id="quiz-form" method="POST" action="{{ url_for('employee.take_quiz') }}">
+                    {% for question in questions %}
+                        <div class="question" id="question-{{ question.id }}" style="display: {% if loop.index == 1 %}block{% else %}none{% endif %};">
+                            <h4 class="question-text">{{ loop.index }}. {{ question.question }}</h4>
+                            
+                            <ul class="options">
+                                {% for i in range(question.options|length) %}
+                                    <li class="option">
+                                        <input type="radio" id="q{{ question.id }}_o{{ i }}" name="question_{{ question.id }}" value="{{ i }}" class="option-input">
+                                        <label for="q{{ question.id }}_o{{ i }}">{{ question.options[i] }}</label>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="quiz-navigation d-flex justify-content-between mt-4">
+                        <button type="button" class="btn btn-outline-secondary" data-action="prev" disabled>Previous</button>
+                        <div class="progress flex-grow-1 mx-3 mt-2">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <button type="button" class="btn btn-primary" data-action="next">Next</button>
+                    </div>
+                    <!-- Hidden submit button that will be triggered by JS -->
+                    <button type="submit" id="quiz-submit" style="display: none;">Submit Quiz</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">Why Take This Quiz?</h3>
+            </div>
+            <div class="card-body">
+                <p>Understanding sustainability concepts helps you make better choices for the environment. This quiz will test your knowledge and provide educational information about carbon footprints and climate impact.</p>
+                
+                <div class="row text-center mt-3">
+                    <div class="col-md-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book text-primary mb-2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <h5>Learn</h5>
+                        <p>Expand your knowledge about environmental impact</p>
+                    </div>
+                    <div class="col-md-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-award text-primary mb-2">
+                            <circle cx="12" cy="8" r="7"></circle>
+                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                        </svg>
+                        <h5>Earn Points</h5>
+                        <p>Track your progress and knowledge level</p>
+                    </div>
+                    <div class="col-md-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-share-2 text-primary mb-2">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <h5>Share</h5>
+                        <p>Inspire others with your knowledge</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if not completed %}
+            // Initialize quiz
+            initQuiz({{ questions|length }});
+            
+            // Handle progress bar updates
+            const progressBar = document.querySelector('.progress-bar');
+            const questionOptions = document.querySelectorAll('.option-input');
+            const totalQuestions = {{ questions|length }};
+            
+            questionOptions.forEach(option => {
+                option.addEventListener('change', function() {
+                    // Count answered questions
+                    const answered = Object.keys(quizState.answers).length;
+                    const progressPercentage = (answered / totalQuestions) * 100;
+                    progressBar.style.width = progressPercentage + '%';
+                });
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

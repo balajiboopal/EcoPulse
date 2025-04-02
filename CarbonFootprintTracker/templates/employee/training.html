@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block title %}Sustainability Learning Center{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">Sustainability Learning Center</h1>
+    <p class="text-muted">Track your carbon footprint and learn how to reduce your impact</p>
+    
+    <div class="calculate-educate-container">
+        <!-- Calculate Panel -->
+        <div class="panel calculate-panel">
+            <div class="panel-content">
+                <h2 class="panel-header">Calculate</h2>
+                
+                <!-- Donut Chart -->
+                <div class="donut-chart">
+                    <svg viewBox="0 0 36 36">
+                        <path class="donut-ring" d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none" stroke="#e6e6e6" stroke-width="2"></path>
+                        <path class="donut-segment" d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none" stroke="#2ecc71" stroke-width="2" stroke-dasharray="{{ overall_progress }}, 100" stroke-dashoffset="25"></path>
+                    </svg>
+                    <div class="donut-chart-center">
+                        <div class="donut-value">{{ total_footprint|default('1,649') }}</div>
+                        <div class="donut-label">kg CO2e</div>
+                        <div class="donut-sublabel">Total emissions this month</div>
+                    </div>
+                </div>
+                
+                <!-- Metrics Row -->
+                <div class="metric-row">
+                    <div class="metric-item">
+                        <div class="metric-value">{{ remaining_footprint|default('674') }} kg</div>
+                        <div class="metric-label">Your remaining footprint</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">{{ total_offsets|default('975') }} kg</div>
+                        <div class="metric-label">Your total offsets</div>
+                    </div>
+                </div>
+                
+                <!-- Transaction Search -->
+                <div class="transaction-search">
+                    <input type="text" placeholder="Search transactions...">
+                    <button>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Filter Button -->
+                <button class="filter-button">Filter</button>
+                
+                <!-- Recent Transactions -->
+                <div class="transactions-list">
+                    <h3>Today</h3>
+                    
+                    {% for transaction in transactions|default([
+                        {'merchant': 'Uber', 'amount': '£12.90', 'carbon': '+0.6 kg', 'icon': 'car'},
+                        {'merchant': 'Allbirds', 'amount': '£120', 'carbon': '0 kg', 'icon': 'shopping-bag'},
+                        {'merchant': 'NPower', 'amount': '£75', 'carbon': '+492.3 kg', 'icon': 'zap'},
+                        {'merchant': 'Adidas', 'amount': '£24.90', 'carbon': '+59.9 kg', 'icon': 'shopping-bag'}
+                    ]) %}
+                    <div class="transaction-item">
+                        <div class="transaction-icon {{ transaction.icon }}">
+                            {% if transaction.icon == 'car' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"></path>
+                                <circle cx="6.5" cy="14.5" r="1.5"></circle>
+                                <circle cx="17.5" cy="14.5" r="1.5"></circle>
+                            </svg>
+                            {% elif transaction.icon == 'shopping-bag' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                            {% elif transaction.icon == 'zap' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="transaction-info">
+                            <div class="transaction-merchant">{{ transaction.merchant }}</div>
+                            <div class="transaction-amount">{{ transaction.amount }}</div>
+                        </div>
+                        <div class="transaction-carbon">{{ transaction.carbon }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Educate Panel -->
+        <div class="panel educate-panel">
+            <div class="panel-content">
+                <h2 class="panel-header">Educate</h2>
+                
+                <!-- Recommendation Cards -->
+                <div class="recommendation-box">
+                    <div class="recommendation-header">
+                        <h3>Fly carbon neutral</h3>
+                        <button class="more-options-btn">•••</button>
+                    </div>
+                    <p>Looks like you have a new flight purchased. Make it carbon neutral by offsetting now ✈️</p>
+                </div>
+                
+                <!-- Emissions Comparison -->
+                <div class="emissions-card">
+                    <div class="emissions-card-header">Your emissions are equal to</div>
+                    <div class="emissions-visual">
+                        <img src="{{ url_for('static', filename='img/travel.svg') }}" alt="Travel" class="emissions-icon">
+                        <div class="emissions-details">
+                            <div class="emissions-value">3.2</div>
+                            <div class="emissions-detail">trips from London to Rome</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Biggest Impact -->
+                <div class="impact-card">
+                    <div class="impact-header">Your biggest emission source</div>
+                    <div class="impact-content">
+                        <div class="impact-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </div>
+                        <div class="impact-details">
+                            <div class="impact-source">Energy</div>
+                            <div class="impact-value">+492.3 kg</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Learning Modules -->
+                <div class="modules-section">
+                    <h3>Learning Modules</h3>
+                    
+                    <div class="modules-list">
+                        {% for module in modules %}
+                        <div class="module-item {% if module.completed %}completed{% endif %}">
+                            <div class="module-icon">
+                                {% if module.module_name.lower().find('energy') >= 0 %}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                                </svg>
+                                {% elif module.module_name.lower().find('travel') >= 0 %}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                </svg>
+                                {% elif module.module_name.lower().find('food') >= 0 %}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="1" x2="6" y2="4"></line>
+                                    <line x1="10" y1="1" x2="10" y2="4"></line>
+                                    <line x1="14" y1="1" x2="14" y2="4"></line>
+                                </svg>
+                                {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"></path>
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <div class="module-info">
+                                <div class="module-name">{{ module.module_name }}</div>
+                                <div class="module-progress-container">
+                                    <div class="module-progress-bar" style="width: {{ module.completion_percentage }}%;"></div>
+                                </div>
+                            </div>
+                            <div class="module-action">
+                                <a href="{{ url_for('employee.view_training_module', module_id=module.module_id) }}">
+                                    {% if module.completed %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                    {% else %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    {% endif %}
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Your Ranking -->
+                <div class="ranking-card">
+                    <div class="ranking-header">Where you stand</div>
+                    
+                    <div class="ranking-items">
+                        <div class="ranking-item">
+                            <div class="ranking-position">
+                                <div class="position-number">1</div>
+                                <div>UN 1.5° target</div>
+                            </div>
+                            <div class="position-value">175 kg</div>
+                        </div>
+                        
+                        <div class="ranking-item">
+                            <div class="ranking-position">
+                                <div class="position-number">2</div>
+                                <div>Your country</div>
+                            </div>
+                            <div class="position-value">440 kg</div>
+                        </div>
+                        
+                        <div class="ranking-item highlighted">
+                            <div class="ranking-position">
+                                <div class="position-number">3</div>
+                                <div>You</div>
+                            </div>
+                            <div class="position-value">674 kg</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Certificate Modal -->
+<div id="certificateModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="certificate-content">
+            <div class="certificate-header">
+                <img src="{{ url_for('static', filename='img/ecopulse_logo.svg') }}" alt="EcoPulse Logo" class="certificate-logo">
+                <h2>Certificate of Completion</h2>
+            </div>
+            <div class="certificate-body">
+                <p>This certifies that</p>
+                <h3 class="certificate-name">{{ user.username }}</h3>
+                <p>has successfully completed the</p>
+                <h3 class="certificate-course" id="certificateTitle"></h3>
+                <p>training module with EcoPulse</p>
+                <div class="certificate-date" id="certificateDate"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function viewCertificate(moduleId) {
+        // Find the module data
+        const modules = [
+            {% for module in modules %}
+            {
+                id: {{ module.module_id }},
+                name: "{{ module.module_name }}",
+                date: "{{ module.last_activity.strftime('%B %d, %Y') }}"
+            }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        const module = modules.find(m => m.id === moduleId);
+        
+        if (module) {
+            // Update the modal content
+            document.getElementById('certificateTitle').textContent = module.name;
+            document.getElementById('certificateDate').textContent = module.date;
+            
+            // Show the modal
+            document.getElementById('certificateModal').style.display = 'block';
+        }
+    }
+    
+    function closeModal() {
+        document.getElementById('certificateModal').style.display = 'none';
+    }
+    
+    function shareCertificate(moduleId) {
+        alert('Certificate sharing feature coming soon!');
+    }
+    
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        const modal = document.getElementById('certificateModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

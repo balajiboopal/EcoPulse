@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Donation Successful - EcoPulse{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  .impact-metrics .bg-light {
+    transition: all 0.3s ease;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  .impact-metrics .bg-light:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  }
+  .impact-metrics i {
+    transition: all 0.3s ease;
+  }
+  .impact-metrics .bg-light:hover i {
+    transform: scale(1.2);
+  }
+  .card {
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+  .donation-amount {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #27ae60;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <div class="mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          </div>
+          <h2 class="card-title mb-4">Thank You for Your Contribution!</h2>
+          {% if donation_stats %}
+          <div class="donation-amount">${{ donation_stats.amount|round(2) }}</div>
+          {% endif %}
+          <p class="card-text lead">Your donation will help offset carbon emissions and support our company's sustainability initiatives.</p>
+          <p class="card-text text-muted mb-4">Your contribution directly funds verified carbon offset projects and environmental conservation efforts.</p>
+          
+          {% if donation_stats %}
+          <div class="impact-metrics row justify-content-center mb-4">
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="p-3 rounded bg-light">
+                <i class="fas fa-tree text-success mb-3" style="font-size: 2rem;"></i>
+                <h5>Carbon Sequestered</h5>
+                <p class="mb-0">Equivalent to planting {{ donation_stats.trees_planted }} trees</p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="p-3 rounded bg-light">
+                <i class="fas fa-car text-primary mb-3" style="font-size: 2rem;"></i>
+                <h5>Emissions Avoided</h5>
+                <p class="mb-0">{{ donation_stats.car_miles }} miles of driving</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 rounded bg-light">
+                <i class="fas fa-leaf text-warning mb-3" style="font-size: 2rem;"></i>
+                <h5>Carbon Offset</h5>
+                <p class="mb-0">{{ donation_stats.carbon_offset_kg|round(1) }} kg CO₂</p>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="impact-metrics row justify-content-center mb-4">
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="p-3 rounded bg-light">
+                <i class="fas fa-tree text-success mb-3" style="font-size: 2rem;"></i>
+                <h5>Carbon Sequestered</h5>
+                <p class="mb-0">Equivalent to planting trees</p>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="p-3 rounded bg-light">
+                <i class="fas fa-car text-primary mb-3" style="font-size: 2rem;"></i>
+                <h5>Emissions Avoided</h5>
+                <p class="mb-0">Fewer miles driven</p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 rounded bg-light">
+                <i class="fas fa-leaf text-warning mb-3" style="font-size: 2rem;"></i>
+                <h5>Carbon Offset</h5>
+                <p class="mb-0">kg CO₂</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          
+          <a href="{{ url_for('company.events') }}" class="btn btn-primary">Return to Events</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
