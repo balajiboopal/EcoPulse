@@ -28,7 +28,7 @@ if database_url and database_url.startswith("postgres://"):
     # Fix for older SQLAlchemy versions which require postgresql:// instead of postgres://
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:///instance/carbon_footprint.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:////tmp/carbon_footprint.db"
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
