@@ -9,8 +9,11 @@ from flask_login import LoginManager
 logging.basicConfig(level=logging.DEBUG)
 
 # Base class for SQLAlchemy models
+
+
 class Base(DeclarativeBase):
     pass
+
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(model_class=Base)
@@ -25,7 +28,7 @@ if database_url and database_url.startswith("postgres://"):
     # Fix for older SQLAlchemy versions which require postgresql:// instead of postgres://
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:////home/runner/workspace/instance/carbon_footprint.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:///instance/carbon_footprint.db"
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
@@ -44,24 +47,24 @@ login_manager.login_view = 'auth.login'
 with app.app_context():
     # Import models first to register them with SQLAlchemy
     import models
-    
+
     # Register blueprints
     from routes.auth import auth_bp
     from routes.employee import employee_bp
     from routes.company import company_bp
-    
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(employee_bp)
     app.register_blueprint(company_bp)
-    
+
     # Create all database tables
     db.create_all()
-    
+
     # Add seed data for events only if the table is empty
     from models import CompanyEvent
     from datetime import datetime, timedelta
     import json
-    
+
     if CompanyEvent.query.count() == 0:
         # Create some demo events
         events = [
@@ -223,15 +226,17 @@ with app.app_context():
                 'carbon_offset_percentage': 55.0
             }
         ]
-        
+
         # Add all events to the database
         for event_data in events:
             event = CompanyEvent(**event_data)
             db.session.add(event)
-        
+
         db.session.commit()
 
 # Setup login manager loader
+
+
 @login_manager.user_loader
 def load_user(user_id):
     from models import User
