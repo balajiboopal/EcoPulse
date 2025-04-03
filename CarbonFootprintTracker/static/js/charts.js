@@ -114,6 +114,102 @@ function createFootprintHistoryChart(canvasId, labels, scores, emissions) {
 }
 
 /**
+ * Charts and data visualization for Carbon Footprint Tracker
+ * 
+ * This module provides chart creation and management functionality using Chart.js
+ */
+
+// Chart color palette matching our design
+
+
+/**
+ * Create a demo chart for showcasing carbon emissions and sustainability scores
+ * 
+ * @param {string} canvasId - The ID of the canvas element
+ */
+function createDemoChart(canvasId) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+
+  // Dummy data for the demo
+  const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+  const emissions = [120, 100, 90, 80, 70, 60, 50]; // Carbon emissions in kg CO₂
+  const scores = [50, 60, 70, 75, 80, 85, 90]; // Sustainability scores
+
+  // Create the chart
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels, // X-axis labels
+      datasets: [
+        {
+          label: 'Carbon Emissions (kg CO₂)',
+          data: emissions, // Y-axis data for emissions
+          borderColor: chartColors.danger, // Line color
+          backgroundColor: chartColors.dangerAlpha, // Fill color
+          borderWidth: 2,
+          tension: 0.3, // Smooth curve
+          yAxisID: 'y'
+        },
+        {
+          label: 'Sustainability Score',
+          data: scores, // Y-axis data for scores
+          borderColor: chartColors.primary, // Line color
+          backgroundColor: chartColors.primaryAlpha, // Fill color
+          borderWidth: 2,
+          tension: 0.3, // Smooth curve
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Months'
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          }
+        },
+        y: {
+          position: 'left',
+          title: {
+            display: true,
+            text: 'Carbon Emissions (kg CO₂)'
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          }
+        },
+        y1: {
+          position: 'right',
+          title: {
+            display: true,
+            text: 'Sustainability Score'
+          },
+          min: 0,
+          max: 100,
+          grid: {
+            drawOnChartArea: false // Don't overlap grids
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      }
+    }
+  });
+}
+/**
  * Create a doughnut chart for footprint breakdown
  * 
  * @param {string} canvasId - The ID of the canvas element
@@ -176,65 +272,61 @@ function createFootprintBreakdownChart(canvasId, footprintData) {
  * @param {string} canvasId - The ID of the canvas element
  * @param {Object} forecastData - Forecast data containing labels and datasets
  */
-function createForecastChart(canvasId, forecastData) {
+function createSavingsChart(canvasId) {
   const ctx = document.getElementById(canvasId).getContext('2d');
-  
+
+  // Hardcoded data for the demo
+  const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+  const savingsData = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]; // Monthly Savings
+
   // Create the chart
   new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels: forecastData.labels,
+      labels: labels, // X-axis labels
       datasets: [
         {
-          label: 'Baseline (No Change)',
-          data: forecastData.baseline,
-          borderColor: chartColors.gray,
-          borderDash: [5, 5],
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: false,
-          tension: 0.1
+          label: 'kg CO₂ Saved',
+          data: savingsData,
+          backgroundColor: 'rgba(54, 162, 235, 0.5)', // Bar color
+          borderColor: 'rgba(54, 162, 235, 1)', // Border color
+          borderWidth: 1,
         },
-        {
-          label: 'Projected Emissions',
-          data: forecastData.forecast,
-          borderColor: chartColors.primary,
-          backgroundColor: chartColors.primaryAlpha,
-          borderWidth: 2,
-          tension: 0.2,
-          fill: true
-        }
-      ]
+      ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
         x: {
+          title: {
+            display: true,
+            text: 'Months',
+          },
           grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
-          }
+            color: 'rgba(0, 0, 0, 0.05)',
+          },
         },
         y: {
           title: {
             display: true,
-            text: 'kg CO₂'
+            text: 'kg CO₂ Saved',
           },
           grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
-          }
-        }
+            color: 'rgba(0, 0, 0, 0.05)',
+          },
+        },
       },
       plugins: {
         legend: {
-          position: 'top'
+          position: 'top',
         },
         tooltip: {
           mode: 'index',
-          intersect: false
-        }
-      }
-    }
+          intersect: false,
+        },
+      },
+    },
   });
 }
 
@@ -409,42 +501,60 @@ function createCompanyTrendChart(canvasId, trendData) {
  * @param {string} canvasId - The ID of the canvas element
  * @param {Object} forecastData - Forecast data with savings information
  */
-function createSavingsChart(canvasId, forecastData) {
+function createSavingsChart(canvasId) {
   const ctx = document.getElementById(canvasId).getContext('2d');
-  
+
+  // Hardcoded data for the demo
+  const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
+  const savingsData = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4]; // Monthly Savings
+
   // Create the chart
   new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: forecastData.labels,
+      labels: labels, // X-axis labels
       datasets: [
         {
-          label: 'Monthly Savings (kg CO₂)',
-          data: forecastData.savings,
-          backgroundColor: chartColors.companyPrimary
-        }
-      ]
+          label: 'kg CO₂ Saved',
+          data: savingsData,
+          backgroundColor: 'rgba(54, 162, 235, 0.5)', // Bar color
+          borderColor: 'rgba(54, 162, 235, 1)', // Border color
+          borderWidth: 1,
+        },
+      ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: {
-          beginAtZero: true,
+        x: {
           title: {
             display: true,
-            text: 'kg CO₂ Saved'
+            text: 'Months',
           },
           grid: {
-            color: 'rgba(0, 0, 0, 0.05)'
-          }
-        }
+            color: 'rgba(0, 0, 0, 0.05)',
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'kg CO₂ Saved',
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)',
+          },
+        },
       },
       plugins: {
         legend: {
-          display: false
-        }
-      }
-    }
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+        },
+      },
+    },
   });
 }

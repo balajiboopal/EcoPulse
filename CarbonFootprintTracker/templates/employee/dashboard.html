@@ -135,16 +135,15 @@
 
         <!-- History chart -->
         {% if dates and scores and emissions %}
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Your Progress Over Time</h3>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="footprint-history-chart"></canvas>
-                </div>
-            </div>
-        </div>
+        <!-- filepath: /Users/balajiboopal/Documents/EcoPulse/CarbonFootprintTracker/templates/employee/dashboard.html -->
+<div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Demo Chart: Carbon Emissions vs Sustainability Score</h3>
+    </div>
+    <div class="card-body">
+      <canvas id="demo-chart" style="height: 400px;"></canvas>
+    </div>
+  </div>
         {% endif %}
 
         <!-- Footprint breakdown -->
@@ -283,6 +282,9 @@
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the demo chart
+        createDemoChart('demo-chart');
+
         // Initialize employee dashboard
         initEmployeeDashboard({
             dates: {% if dates %}{{ dates|safe }}{% else %}null{% endif %},

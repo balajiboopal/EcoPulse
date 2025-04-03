@@ -3,6 +3,7 @@
 {% block title %}EcoPulse - Track Your Green Trajectory{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1">
 <style>
   .hero-section {
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
@@ -153,8 +154,8 @@
         <h1 class="hero-title">Track, Analyze & Reduce Your Company's Carbon Footprint</h1>
         <p class="hero-subtitle">EcoPulse empowers employees and executives with actionable sustainability insights. Our platform seamlessly integrates with your existing workflows to provide comprehensive carbon tracking and reduction strategies.</p>
         <div class="d-flex gap-3">
-          <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg">Log In</a>
-          <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-lg">Get Started</a>
+          <a href="{{ url_for('auth.login') }}" class="btn1 btn-lg">Log In</a>
+          <a href="{{ url_for('auth.register') }}" class="btn1  btn-lg">Get Started</a>
         </div>
       </div>
       <div class="col-md-5 text-center">

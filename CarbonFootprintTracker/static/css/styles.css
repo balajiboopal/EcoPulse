@@ -282,6 +282,21 @@ p {
   margin-bottom: var(--spacing-lg);
 }
 
+
+.btn1 {
+  text-decoration: none; /* Removes underline */
+  color: white; /* Ensures text is visible */
+  background-color: #27AE60; /* Button background color */
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: inline-block;
+  transition: background-color 0.3s ease;
+}
+
+.btn1:hover {
+  background-color: var(--secondary); /* Change background color on hover */
+}
+
 /* Buttons and interactive elements */
 .btn {
   display: inline-block;
@@ -927,6 +942,7 @@ p {
   color: var(--primary);
   background-color: rgba(46, 204, 113, 0.08);
 }
+
 
 /* Authentication buttons */
 .auth-button {

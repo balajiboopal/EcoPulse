@@ -4,7 +4,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
-
+from dotenv import load_dotenv
+load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -23,17 +24,18 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "development-secret-key")
 
 # Configure database
-database_url = os.environ.get("DATABASE_URL")
-if database_url and database_url.startswith("postgres://"):
+database_url = os.getenv("DATABASE_URL", "sqlite:///carbon_footprint.db")  # Default to SQLite if DATABASE_URL is not set
+if database_url.startswith("postgres://"):
     # Fix for older SQLAlchemy versions which require postgresql:// instead of postgres://
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url or "sqlite:////tmp/carbon_footprint.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["TEMPLATES_AUTO_RELOAD"] = os.getenv("TEMPLATES_AUTO_RELOAD", "True").lower() == "true"
 
 # Initialize the app with the extension
 db.init_app(app)
